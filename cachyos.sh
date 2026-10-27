@@ -163,5 +163,6 @@ cp /mnt/data/SOFTWARES/cachy/config.jsonc ~/.config/fastfetch/
 
 # Open Cachy-Update on Alacrity instead of Konsole
 echo "Alacritty.desktop" > ~/.config/xdg-terminals.list
+sed -i -E 's/^(\s*)#?\s*opacity\s*=.*/\1opacity = 0.96 # Default 0.8/' ~/.config/alacritty/alacritty.toml
 
 echo -e "\e[1;32m--- Done! You can Reboot now. ---\e[0m"
