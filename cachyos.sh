@@ -32,7 +32,7 @@ ACTION=="add", KERNEL=="asus-nb-wmi", RUN+="/bin/bash -c 'echo 80 > /sys/class/p
 EOF
 
 echo -e "\e[1;32m--- Installing packages ---\e[0m"
-sudo pacman -S --needed easyeffects lsp-plugins-lv2 brave-origin-bin cloudflare-warp-bin aria2
+sudo pacman -S --needed easyeffects lsp-plugins-lv2 brave-origin-bin cloudflare-warp-bin aria2 xdg-terminal-exec
 
 echo -e "\e[1;32m--- Configuring cloudflare-warp ---\e[0m"
 # start the daemon
@@ -160,5 +160,8 @@ echo -e "\e[1;32m--- Configuring fastfetch ---\e[0m"
 mkdir -p ~/.config/fastfetch
 cp /mnt/data/SOFTWARES/cachy/logo.txt ~/.config/fastfetch/
 cp /mnt/data/SOFTWARES/cachy/config.jsonc ~/.config/fastfetch/
+
+# Open Cachy-Update on Alacrity instead of Konsole
+echo "Alacritty.desktop" > ~/.config/xdg-terminals.list
 
 echo -e "\e[1;32m--- Done! You can Reboot now. ---\e[0m"
