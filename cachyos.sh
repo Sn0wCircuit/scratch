@@ -3,12 +3,27 @@
 # Stop script on first error
 set -e
 
+TOTAL=15
+STEP=0
+step() { echo -e "\e[1;32m($((++STEP))/$TOTAL) $1\e[0m"; }
+
+# Ask for the aria2 RPC secret up front (input is hidden)
+while true; do
+    read -rsp $'\e[1;33mEnter aria2 RPC secret: \e[0m' RPC_SECRET; echo
+    read -rsp $'\e[1;33mConfirm aria2 RPC secret: \e[0m' RPC_SECRET2; echo
+    if [[ -n "$RPC_SECRET" && "$RPC_SECRET" == "$RPC_SECRET2" ]]; then
+        break
+    fi
+    echo -e "\e[1;31mSecret was empty or did not match, try again.\e[0m"
+done
+unset RPC_SECRET2
+
 # Full system upgrade
 sudo pacman --noconfirm -Syu
-echo -e "\e[1;32m(1/13) Full system upgrade performed\e[0m"
+step "Full system upgrade performed"
 
 sudo sed -i -e 's/^timeout:.*/timeout: 3/' -e '1i term_font_scale: 2x2' /boot/limine.conf
-echo -e "\e[1;32m(2/13) Limine config updated\e[0m"
+step "Limine config updated"
 
 sudo tee /etc/systemd/system/mnt-data.mount > /dev/null <<'EOF'
 [Unit]
@@ -25,38 +40,43 @@ WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
 sudo systemctl enable --now mnt-data.mount
-echo -e "\e[1;32m(3/13) Data drive automount configured\e[0m"
+step "Data drive automount configured"
 
 sudo tee /etc/udev/rules.d/asus-battery-charge-threshold.rules > /dev/null <<'EOF'
 ACTION=="add", KERNEL=="asus-nb-wmi", RUN+="/bin/bash -c 'echo 80 > /sys/class/power_supply/BAT1/charge_control_end_threshold'"
 EOF
-echo -e "\e[1;32m(4/13) Battery charge limit set to 80%\e[0m"
+step "Battery charge limit set to 80%"
 
 sudo pacman -S --needed --noconfirm easyeffects lsp-plugins-lv2 brave-origin-bin cloudflare-warp-bin aria2 xdg-terminal-exec
-echo -e "\e[1;32m(5/13) pacman packages installed\e[0m"
+step "pacman packages installed"
 
 # start the daemon
 sudo systemctl enable --now warp-svc
-sleep 3
-# disable the GUI
-systemctl --user disable --now warp-taskbar.service
-systemctl --user mask warp-taskbar.service
+# wait until the daemon answers instead of a blind sleep
+for _ in {1..15}; do
+    warp-cli --accept-tos status &>/dev/null && break
+    sleep 1
+done
+# disable the GUI (don't abort if the unit doesn't exist)
+systemctl --user disable --now warp-taskbar.service || true
+systemctl --user mask warp-taskbar.service || true
 # register and connect
 warp-cli --accept-tos registration new
 warp-cli --accept-tos connect
 # Fix “Limited Connectivity”
 warp-cli --accept-tos tunnel ip add 95.216.195.133
-echo -e "\e[1;32m(6/13) Cloudflare WARP configured\e[0m"
+step "Cloudflare WARP configured"
 
 mkdir -p ~/.local/share/easyeffects/output
-cp /mnt/data/SOFTWARES/cachy/DTS.json ~/.local/share/easyeffects/output/
-echo -e "\e[1;32m(7/13) EasyEffects preset configured\e[0m"
+cp /mnt/data/SOFTWARES/cachy/DTS-Built-In-Speaker.json ~/.local/share/easyeffects/output/
+step "EasyEffects preset configured"
 
-cp -r /mnt/data/SOFTWARES/cachy/.ssh ~/.ssh
+mkdir -p ~/.ssh
+cp -r /mnt/data/SOFTWARES/cachy/.ssh/. ~/.ssh/
 chmod 700 ~/.ssh
 chmod 600 ~/.ssh/id_* ~/.ssh/config ~/.ssh/authorized_keys 2>/dev/null || true
 chmod 644 ~/.ssh/*.pub ~/.ssh/known_hosts 2>/dev/null || true
-echo -e "\e[1;32m(8/13) SSH access configured\e[0m"
+step "SSH access configured"
 
 mkdir -p ~/.config/systemd/user
 cat > ~/.config/systemd/user/aria2.service <<'EOF'
@@ -83,15 +103,18 @@ file-allocation=falloc
 async-dns=false
 continue=true
 enable-rpc=true
-rpc-secret=1610017
 quiet=true
 log=${HOME}/.config/aria2/aria2.log
 log-level=warn
 EOF
+# Append the user-supplied secret (printf %s keeps special characters intact)
+printf 'rpc-secret=%s\n' "$RPC_SECRET" >> ~/.config/aria2/aria2.conf
+chmod 600 ~/.config/aria2/aria2.conf
+unset RPC_SECRET
 touch ~/.config/aria2/aria2.session
 touch ~/.config/aria2/aria2.log
 systemctl enable --user aria2.service
-echo -e "\e[1;32m(9/13) aria2 configured\e[0m"
+step "aria2 configured"
 
 echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
 sudo mkdir -p /etc/brave/policies/managed
@@ -100,7 +123,7 @@ sudo tee /etc/brave/policies/managed/brave-policies.json > /dev/null <<'EOF'
   "PasswordManagerEnabled": false
 }
 EOF
-echo -e "\e[1;32m(10/13) Brave browser configured\e[0m"
+step "Brave browser configured"
 
 mkdir -p ~/.config/mpv
 cat > ~/.config/mpv/mpv.conf <<'EOF'
@@ -154,17 +177,26 @@ MimeType=x-scheme-handler/mpv;
 EOF
 
 xdg-mime default mpv-url-handler.desktop x-scheme-handler/mpv
-echo -e "\e[1;32m(11/13) mpv configured\e[0m"
+step "mpv configured"
 
 mkdir -p ~/.config/fastfetch
 cp /mnt/data/SOFTWARES/cachy/logo.txt ~/.config/fastfetch/
 cp /mnt/data/SOFTWARES/cachy/config.jsonc ~/.config/fastfetch/
-echo -e "\e[1;32m(12/13) fastfetch configured\e[0m"
+step "fastfetch configured"
 
-# Open Cachy-Update on Alacrity instead of Konsole
+# Open Cachy-Update on Alacritty instead of Konsole
 echo "Alacritty.desktop" > ~/.config/xdg-terminals.list
-sed -i -E 's/^(\s*)#?\s*opacity\s*=.*/\1opacity = 0.96 # Default 0.8/' ~/.config/alacritty/alacritty.toml
-echo -e "\e[1;32m(13/13) Alacritty configured\e[0m"
+if [[ -f ~/.config/alacritty/alacritty.toml ]]; then
+    sed -i -E 's/^(\s*)#?\s*opacity\s*=.*/\1opacity = 0.96 # Default 0.8/' ~/.config/alacritty/alacritty.toml
+fi
+step "Alacritty configured"
+
+kscreen-doctor output.eDP-1.iccprofile./mnt/data/SOFTWARES/cachy/FX506LH_8086_AE0D1521.icm output.eDP-1.colorProfileSource.ICC
+step "Display Color Profile Applied"
+
+# NumLock=0 means "on" in kcminputrc (1 = off, 2 = unchanged)
+kwriteconfig6 --file kcminputrc --group Keyboard --key NumLock 0
+step "Numlock turned ON"
 
 read -rp $'\e[1;32mSuccessfully completed all tasks. Reboot? [Y/n] \e[0m' answer || answer=n
 if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
