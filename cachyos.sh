@@ -3,9 +3,15 @@
 # Stop script on first error
 set -e
 
-TOTAL=15
+TOTAL=$(grep -cE '^\s*step "' "${BASH_SOURCE[0]}")
 STEP=0
 step() { echo -e "\e[1;32m($((++STEP))/$TOTAL) $1\e[0m"; }
+
+# Ask for the sudo password once and keep it alive for the whole run
+sudo -v
+while true; do sudo -n true; sleep 50; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
+SUDO_KEEPALIVE_PID=$!
+trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
 
 # Ask for the aria2 RPC secret up front (input is hidden)
 while true; do
@@ -18,12 +24,34 @@ while true; do
 done
 unset RPC_SECRET2
 
+# install WARP
+# -Sy refreshes the package db (a fresh install's db can be stale); the full upgrade follows right after
+sudo pacman -Sy --needed --noconfirm cloudflare-warp-bin
+# start the daemon
+sudo systemctl enable --now warp-svc
+# wait until the daemon answers instead of a blind sleep
+for _ in {1..15}; do
+    warp-cli --accept-tos status &>/dev/null && break
+    sleep 1
+done
+# disable the GUI (don't abort if the unit doesn't exist)
+systemctl --user disable --now warp-taskbar.service || true
+systemctl --user mask warp-taskbar.service || true
+# register and connect
+warp-cli --accept-tos registration new
+warp-cli --accept-tos connect
+# Fix “Limited Connectivity”
+warp-cli --accept-tos tunnel ip add 95.216.195.133
+warp-cli status
+step "Cloudflare WARP configured"
+
+# Rank Arch + CachyOS mirrors (official tool, same as CachyOS Hello > Rank mirrors)
+sudo cachyos-rate-mirrors || echo -e "\e[1;33mMirror ranking failed, continuing with current mirrors\e[0m"
+step "Mirrorlist ranked"
+
 # Full system upgrade
 sudo pacman --noconfirm -Syu
 step "Full system upgrade performed"
-
-sudo sed -i -e 's/^timeout:.*/timeout: 3/' -e '1i term_font_scale: 2x2' /boot/limine.conf
-step "Limine config updated"
 
 sudo tee /etc/systemd/system/mnt-data.mount > /dev/null <<'EOF'
 [Unit]
@@ -47,25 +75,8 @@ ACTION=="add", KERNEL=="asus-nb-wmi", RUN+="/bin/bash -c 'echo 80 > /sys/class/p
 EOF
 step "Battery charge limit set to 80%"
 
-sudo pacman -S --needed --noconfirm easyeffects lsp-plugins-lv2 brave-origin-bin cloudflare-warp-bin aria2 xdg-terminal-exec
+sudo pacman -S --needed --noconfirm easyeffects lsp-plugins-lv2 brave-origin-bin aria2 xdg-terminal-exec
 step "pacman packages installed"
-
-# start the daemon
-sudo systemctl enable --now warp-svc
-# wait until the daemon answers instead of a blind sleep
-for _ in {1..15}; do
-    warp-cli --accept-tos status &>/dev/null && break
-    sleep 1
-done
-# disable the GUI (don't abort if the unit doesn't exist)
-systemctl --user disable --now warp-taskbar.service || true
-systemctl --user mask warp-taskbar.service || true
-# register and connect
-warp-cli --accept-tos registration new
-warp-cli --accept-tos connect
-# Fix “Limited Connectivity”
-warp-cli --accept-tos tunnel ip add 95.216.195.133
-step "Cloudflare WARP configured"
 
 mkdir -p ~/.local/share/easyeffects/output
 cp /mnt/data/SOFTWARES/cachy/DTS-Built-In-Speaker.json ~/.local/share/easyeffects/output/
@@ -197,6 +208,16 @@ step "Display Color Profile Applied"
 # NumLock=0 means "on" in kcminputrc (1 = off, 2 = unchanged)
 kwriteconfig6 --file kcminputrc --group Keyboard --key NumLock 0
 step "Numlock turned ON"
+
+# Limine edit runs last so no earlier pacman hook can overwrite it
+# (/boot is root-only on most installs, hence sudo for grep too)
+sudo sed -i 's/^timeout:.*/timeout: 3/' /boot/limine.conf
+sudo grep -q '^term_font_scale:' /boot/limine.conf || sudo sed -i '1i term_font_scale: 2x2' /boot/limine.conf
+if sudo grep -q '^timeout: 3' /boot/limine.conf && sudo grep -q '^term_font_scale: 2x2' /boot/limine.conf; then
+    step "Limine config updated"
+else
+    echo -e "\e[1;31mLimine config edit did not apply, check /boot/limine.conf\e[0m"
+fi
 
 read -rp $'\e[1;32mSuccessfully completed all tasks. Reboot? [Y/n] \e[0m' answer || answer=n
 if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
