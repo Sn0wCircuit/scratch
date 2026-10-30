@@ -42,7 +42,6 @@ warp-cli --accept-tos registration new
 warp-cli --accept-tos connect
 # Fix “Limited Connectivity”
 warp-cli --accept-tos tunnel ip add 95.216.195.133
-warp-cli status
 step "Cloudflare WARP configured"
 
 # Rank Arch + CachyOS mirrors (official tool, same as CachyOS Hello > Rank mirrors)
