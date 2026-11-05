@@ -155,7 +155,7 @@ fi
 
 # --- Base install ---
 mkdir -p /mnt/etc && touch /mnt/etc/vconsole.conf
-PACSTRAP_PKGS=(base linux linux-firmware)
+PACSTRAP_PKGS=(base linux-cachyos linux-firmware)
 if [ "$CPU_LEVEL" != none ]; then
     # cachyos/pacman: make sure the fork (not a generic rebuild) lands in the new system;
     # the keyring + mirrorlists are required by the repos we add to its pacman.conf below
@@ -206,7 +206,7 @@ echo "$NEWHOST" > /etc/hostname
 useradd -m -G wheel $NEWUSER
 sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
 bootctl --esp-path=/efi --boot-path=/boot install
-echo -e "title Arch Linux\nlinux /vmlinuz-linux\ninitrd /initramfs-linux.img\noptions root=PARTUUID=$ROOT_PARTUUID rw zswap.enabled=0 quiet splash" > /boot/loader/entries/arch.conf
+echo -e "title Arch Linux\nlinux /vmlinuz-linux-cachyos\ninitrd /initramfs-linux-cachyos.img\noptions root=PARTUUID=$ROOT_PARTUUID rw zswap.enabled=0 quiet splash" > /boot/loader/entries/arch.conf
 sed -i 's/^#timeout 3/timeout 3/' /efi/loader/loader.conf
 sed -i '1i default arch.conf' /efi/loader/loader.conf
 EOF
