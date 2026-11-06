@@ -33,6 +33,7 @@ tweak_pacman_conf() {
     sed -i 's/^#Color/Color/' "$conf"
     sed -i 's/^#ILoveCandy/ILoveCandy/' "$conf"
     sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' "$conf"
+    sed -i '/^ParallelDownloads[[:space:]]*=/c\ParallelDownloads = 10' "$conf"
     sed -i 's/^#\[multilib\]/[multilib]/' "$conf"
     sed -i '/^\[multilib\]/{n;s/^#//}' "$conf"
 }
