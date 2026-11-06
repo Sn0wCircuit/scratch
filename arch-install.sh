@@ -290,7 +290,7 @@ cat > /mnt/setup.sh <<EOF
 #!/bin/bash
 set -e
 sed -i '/^HOOKS=/ s/systemd/systemd plymouth/' /etc/mkinitcpio.conf
-pacman -S --needed --noconfirm base-devel intel-ucode networkmanager micro pacman-contrib bash-completion plymouth zram-generator
+pacman -S --needed --noconfirm base-devel intel-ucode networkmanager cachyos-rate-mirrors micro pacman-contrib bash-completion plymouth zram-generator
 systemctl enable NetworkManager
 echo -e "[zram0]\ncompression-algorithm = zstd\nzram-size = 8192\nswap-priority = 100\nfs-type = swap" > /etc/systemd/zram-generator.conf
 curl -fL -o /usr/share/kbd/consolefonts/ter-122b.psf.gz https://github.com/Sn0wCircuit/scratch/raw/refs/heads/main/ter-122b.psf.gz
