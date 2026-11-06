@@ -27,13 +27,20 @@ detect_level() {
 }
 
 # tweak_pacman_conf <pacman.conf>
-# Color, ILoveCandy, VerbosePkgLists and [multilib]. Idempotent.
+# Color, ILoveCandy, VerbosePkgLists, DisableDownloadTimeout, ParallelDownloads = 10,
+# CheckSpace off and [multilib]. Idempotent.
 tweak_pacman_conf() {
-    local conf=$1
-    sed -i 's/^#Color/Color/' "$conf"
-    sed -i 's/^#ILoveCandy/ILoveCandy/' "$conf"
-    sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' "$conf"
-    sed -i '/^ParallelDownloads[[:space:]]*=/c\ParallelDownloads = 10' "$conf"
+    local conf=$1 opt key
+    # Not just uncommenting: stock Arch pacman.conf lacks some of these lines (e.g.
+    # ILoveCandy), so a plain s/^#X/X/ silently does nothing. For each option, drop any
+    # existing line (commented or not, any value) and add one active line under [options].
+    # Each add goes right under [options], so the list is in reverse of the final order.
+    for opt in "ParallelDownloads = 10" DisableDownloadTimeout VerbosePkgLists ILoveCandy Color; do
+        key=${opt%% *}
+        sed -i "/^#\?$key\b/d" "$conf"
+        sed -i "/^\[options\]/a $opt" "$conf"
+    done
+    sed -i 's/^CheckSpace/#CheckSpace/' "$conf"
     sed -i 's/^#\[multilib\]/[multilib]/' "$conf"
     sed -i '/^\[multilib\]/{n;s/^#//}' "$conf"
 }
@@ -110,7 +117,8 @@ find_data_part() {
 
 # --- Questions ---
 lsblk -d -o NAME,SIZE,MODEL
-read -rp "Disk name (e.g. nvme0n1, sda): " DISK
+read -rp "Disk name [nvme0n1]: " DISK
+DISK=${DISK:-nvme0n1}
 case $DISK in *[0-9]) P=p ;; *) P= ;; esac
 part() { echo "/dev/$DISK$P$1"; }
 
@@ -191,6 +199,7 @@ for e in $(efibootmgr | grep -oP '^Boot\K[0-9A-F]{4}'); do
 done
 
 # --- pacman.conf tweaks in the LIVE system (before any package installation) ---
+# pacstrap runs pacman with this host config (/etc/pacman.conf unless -C is given).
 tweak_pacman_conf /etc/pacman.conf
 
 # --- CachyOS repos + ranked mirrors in the LIVE system ---
@@ -250,8 +259,8 @@ fi
 pacstrap -K /mnt "${PACSTRAP_PKGS[@]}"
 
 # --- pacman.conf tweaks in the NEW system ---
-# The file only exists once pacstrap has installed pacman; this runs before any
-# further package installation (the chroot setup below).
+# pacstrap does not use this file. It only exists once pacstrap has installed pacman;
+# the tweak applies from the arch-chroot stage onward and to the installed system.
 tweak_pacman_conf /mnt/etc/pacman.conf
 
 # --- CachyOS repos + keyring in the NEW system (persists after reboot) ---
