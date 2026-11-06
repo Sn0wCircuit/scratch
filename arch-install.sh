@@ -33,7 +33,7 @@ tweak_pacman_conf() {
     sed -i 's/^#Color/Color/' "$conf"
     sed -i 's/^#ILoveCandy/ILoveCandy/' "$conf"
     sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' "$conf"
-    sed -i '/^ParallelDownloads[[:space:]]*=/c\ParallelDownloads = 10' "$conf"
+    # sed -i '/^ParallelDownloads[[:space:]]*=/c\ParallelDownloads = 10' "$conf"
     sed -i 's/^#\[multilib\]/[multilib]/' "$conf"
     sed -i '/^\[multilib\]/{n;s/^#//}' "$conf"
 }
@@ -295,7 +295,7 @@ echo "$NEWHOST" > /etc/hostname
 useradd -m -G wheel $NEWUSER
 sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
 bootctl --esp-path=/efi --boot-path=/boot install
-echo -e "title Arch Linux\nlinux /vmlinuz-linux-cachyos\ninitrd /initramfs-linux-cachyos.img\noptions root=PARTUUID=$ROOT_PARTUUID rw zswap.enabled=0 quiet splash" > /boot/loader/entries/arch.conf
+echo -e "title Arch Linux\nlinux /vmlinuz-linux-cachyos\ninitrd /initramfs-linux-cachyos.img\noptions root=PARTUUID=$ROOT_PARTUUID rw zswap.enabled=0 nowatchdog quiet splash" > /boot/loader/entries/arch.conf
 sed -i 's/^#timeout 3/timeout 3/' /efi/loader/loader.conf
 sed -i '1i default arch.conf' /efi/loader/loader.conf
 EOF
