@@ -293,8 +293,6 @@ sed -i '/^HOOKS=/ s/systemd/systemd plymouth/' /etc/mkinitcpio.conf
 pacman -S --needed --noconfirm base-devel intel-ucode networkmanager cachyos-rate-mirrors micro pacman-contrib bash-completion plymouth zram-generator
 systemctl enable NetworkManager
 echo -e "[zram0]\ncompression-algorithm = zstd\nzram-size = 8192\nswap-priority = 100\nfs-type = swap" > /etc/systemd/zram-generator.conf
-curl -fL -o /usr/share/kbd/consolefonts/ter-122b.psf.gz https://github.com/Sn0wCircuit/scratch/raw/refs/heads/main/ter-122b.psf.gz
-echo "FONT=ter-122b" > /etc/vconsole.conf
 ln -sf /usr/share/zoneinfo/Asia/Dhaka /etc/localtime
 hwclock --systohc
 sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
@@ -339,8 +337,10 @@ rm /mnt/setup.sh
 echo "root:$ROOT_PASS" | arch-chroot /mnt chpasswd
 echo "$NEWUSER:$USER_PASS" | arch-chroot /mnt chpasswd
 
-# --- Finalize: ext4 EFI driver ---
+# --- Finalize: ext4 EFI driver & Consolefont---
 mkdir -p /mnt/efi/EFI/systemd/drivers
 cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
+cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/ter-122b.psf.gz
+echo "FONT=ter-122b" > mnt/etc/vconsole.conf
 umount -R /mnt
 echo "Done! Reboot now."
