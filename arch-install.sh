@@ -93,8 +93,9 @@ import_cachy_key() {
 # Rank the Arch + CachyOS mirrors with CachyOS's own tool (needs the [cachyos] repo).
 # It rewrites /etc/pacman.d/mirrorlist and the cachyos mirrorlists.
 rank_mirrors() {
-    pacman -Sy --noconfirm --needed cachyos-rate-mirrors
+    pacman -S --noconfirm --needed cachyos-rate-mirrors
     cachyos-rate-mirrors
+    pacman -Sy
 }
 
 # Numbers of all partitions on the disk
