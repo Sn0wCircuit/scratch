@@ -340,7 +340,7 @@ echo "$NEWUSER:$USER_PASS" | arch-chroot /mnt chpasswd
 # --- Finalize: ext4 EFI driver & Consolefont---
 mkdir -p /mnt/efi/EFI/systemd/drivers
 cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
-cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/ter-122b.psf.gz
+cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/
 echo "FONT=ter-122b" > /mnt/etc/vconsole.conf
 umount -R /mnt
 echo "Done! Reboot now."
