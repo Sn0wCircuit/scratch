@@ -340,6 +340,6 @@ echo "$NEWUSER:$USER_PASS" | arch-chroot /mnt chpasswd
 
 # --- Finalize: ext4 EFI driver ---
 mkdir -p /mnt/efi/EFI/systemd/drivers
-curl -fL -o /mnt/efi/EFI/systemd/drivers/ext4_x64.efi https://github.com/Sn0wCircuit/scratch/raw/refs/heads/main/ext4_x64.efi
+cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
 umount -R /mnt
 echo "Done! Reboot now."
