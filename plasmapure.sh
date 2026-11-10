@@ -8,7 +8,7 @@ set -e
 sudo pacman -Syu --noconfirm
 
 # Install Nvidia Driver
-sudo pacman -S --needed --noconfirm linux-cachyos-nvidia-open
+sudo pacman -S --needed --noconfirm nvidia-open
 
 # Intel Drivers
 sudo pacman -S --needed --noconfirm intel-media-driver vulkan-intel
@@ -31,7 +31,7 @@ sudo pacman -S --needed --noconfirm plasma-meta ark dolphin gwenview konsole kat
 systemctl --user enable pipewire pipewire-pulse wireplumber
 
 # Applications & Tools
-sudo pacman -S --needed --noconfirm brave-origin-bin easyeffects lsp-plugins-lv2 asusctl rog-control-center mpv aria2 fastfetch openssh
+sudo pacman -S --needed --noconfirm firefox easyeffects lsp-plugins-lv2 mpv aria2 fastfetch openssh
 
 # mpv Configuration
 mkdir -p ~/.config/mpv
@@ -92,7 +92,7 @@ curl -fL -o ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://
 curl -fL -o ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
 
 # brave command line flags
-echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
+#echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
 
 # fastfetch config
 mkdir -p ~/.config/fastfetch
@@ -111,26 +111,26 @@ curl -fL -o ~/.bashrc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs
 # chmod 644 ~/.ssh/*.pub
 
 # install WARP
-sudo pacman -S --needed --noconfirm cloudflare-warp-bin
+#sudo pacman -S --needed --noconfirm cloudflare-warp-bin
 # start the daemon
-sudo systemctl enable --now warp-svc
+#sudo systemctl enable --now warp-svc
 # wait until the daemon answers instead of a blind sleep
-for _ in {1..15}; do
-    warp-cli --accept-tos status &>/dev/null && break
-    sleep 1
-done
+#for _ in {1..15}; do
+    #warp-cli --accept-tos status &>/dev/null && break
+    #sleep 1
+#done
 # disable the GUI
-systemctl --user disable --now warp-taskbar.service
-systemctl --user mask warp-taskbar.service
+#systemctl --user disable --now warp-taskbar.service
+#systemctl --user mask warp-taskbar.service
 # register and connect
-warp-cli --accept-tos registration new
-warp-cli --accept-tos connect
-warp-cli --accept-tos mode warp+doh
+#warp-cli --accept-tos registration new
+#warp-cli --accept-tos connect
+#warp-cli --accept-tos mode warp+doh
 # Fix “Limited Connectivity”
-warp-cli --accept-tos tunnel ip add 95.216.195.133
+#warp-cli --accept-tos tunnel ip add 95.216.195.133
 
-sudo cachyos-rate-mirrors || echo -e "\e[1;33mMirror ranking failed\e[0m"
-sudo pacman -Syu --noconfirm
+#sudo cachyos-rate-mirrors || echo -e "\e[1;33mMirror ranking failed\e[0m"
+#sudo pacman -Syu --noconfirm
 sudo pacman -S --needed --noconfirm noto-fonts-extra noto-fonts-cjk
 
 echo -e "\e[1;32m=== Setup complete ===\e[0m"
