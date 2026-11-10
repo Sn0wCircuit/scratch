@@ -3,7 +3,7 @@
 # Stop script on first error
 set -e
 
-nmcli device wifi connect "Weirdo" password "16@10@017"
+# nmcli device wifi connect "" password ""
 
 sudo pacman -Syu --noconfirm
 
