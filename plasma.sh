@@ -88,27 +88,27 @@ sudo systemctl enable bluetooth systemd-boot-update plasmalogin
 
 # easyeffects preset
 mkdir -p ~/.local/share/easyeffects/output
-cp /mnt/data/SOFTWARES/arch/DTS-Built-In-Speaker.json ~/.local/share/easyeffects/output/
-cp /mnt/data/SOFTWARES/arch/AirPods4-ANC.json ~/.local/share/easyeffects/output/
+curl -fL -o ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/DTS-Built-In-Speaker.json
+curl -fL -o ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
 
 # brave command line flags
 echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
 
 # fastfetch config
 mkdir -p ~/.config/fastfetch
-cp /mnt/data/SOFTWARES/arch/logo.txt ~/.config/fastfetch/
-cp /mnt/data/SOFTWARES/arch/config.jsonc ~/.config/fastfetch/
+curl -fL -o ~/.config/fastfetch/logo.txt https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/logo.txt
+curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/config.jsonc
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
 curl -fL -o ~/.bashrc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/.bashrc
 
 # ssh access
-mkdir -p ~/.ssh
-cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/id_* ~/.ssh/config
-chmod 644 ~/.ssh/*.pub
+# mkdir -p ~/.ssh
+# cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
+# chmod 700 ~/.ssh
+# chmod 600 ~/.ssh/id_* ~/.ssh/config
+# chmod 644 ~/.ssh/*.pub
 
 # install WARP
 sudo pacman -S --needed --noconfirm cloudflare-warp-bin
