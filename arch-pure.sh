@@ -183,9 +183,6 @@ fi
 mkdir -p /mnt/etc && touch /mnt/etc/vconsole.conf
 pacstrap -K /mnt base linux linux-firmware
 
-# --- Carry the hardcoded mirrorlist into the NEW system (persists after reboot) ---
-cp -f /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
-
 # --- pacman.conf tweaks in the NEW system ---
 # pacstrap does not use this file. It only exists once pacstrap has installed pacman;
 # the tweak applies from the arch-chroot stage onward and to the installed system.
