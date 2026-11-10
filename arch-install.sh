@@ -4,17 +4,10 @@ set -e
 timedatectl set-ntp true
 
 # --- CachyOS repo settings (taken from CachyOS's official cachyos-repo.sh) ---
-# If a download 404s one day, bump these to the versions listed on
-# https://wiki.cachyos.org/features/optimized_repos/
+# Package filenames (keyring, mirrorlists, pacman fork) are resolved at runtime
+# from the mirror's directory listing, see cachy_resolve_pkgs below.
 CACHY_KEY=F3B607488DB35A47
 CACHY_URL=https://mirror.cachyos.org/repo/x86_64/cachyos
-CACHY_PKGS_U=(
-    "$CACHY_URL/cachyos-keyring-20240331-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-v3-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-v4-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/pacman-7.1.0.r9.g54d9411-5-x86_64.pkg.tar.zst"
-)
 
 # Highest x86-64 level this CPU supports (same check CachyOS's script uses)
 detect_level() {
@@ -26,21 +19,37 @@ detect_level() {
     fi
 }
 
-# tweak_pacman_conf <pacman.conf>
-# Color, ILoveCandy, VerbosePkgLists, DisableDownloadTimeout, ParallelDownloads = 10,
-# CheckSpace off and [multilib]. Idempotent.
-tweak_pacman_conf() {
-    local conf=$1 opt key
-    # Not just uncommenting: stock Arch pacman.conf lacks some of these lines (e.g.
-    # ILoveCandy), so a plain s/^#X/X/ silently does nothing. For each option, drop any
-    # existing line (commented or not, any value) and add one active line under [options].
-    # Each add goes right under [options], so the list is in reverse of the final order.
-    for opt in "ParallelDownloads = 10" DisableDownloadTimeout VerbosePkgLists ILoveCandy Color; do
-        key=${opt%% *}
-        sed -i "/^#\?$key\b/d" "$conf"
-        sed -i "/^\[options\]/a $opt" "$conf"
+# Succeeds only if <url>.sig downloads and is not empty / an HTML error page
+cachy_sig_ok() {
+    local tmp rc; tmp=$(mktemp)
+    if curl -fsSL --retry 2 "$1.sig" -o "$tmp" 2>/dev/null \
+       && [ -s "$tmp" ] && ! grep -aqiE '<html|<!doctype' "$tmp"; then rc=0; else rc=1; fi
+    rm -f "$tmp"; return $rc
+}
+
+# Resolve the newest filenames from the mirror's directory listing into CACHY_PKGS_U.
+# Aborts (before any disk is touched) if a package or its signature can't be found.
+cachy_resolve_pkgs() {
+    local listing p f
+    listing=$(curl -fsSL --retry 3 "$CACHY_URL/") || { echo "Cannot fetch $CACHY_URL/" >&2; return 1; }
+    CACHY_PKGS_U=()
+    for p in cachyos-keyring cachyos-mirrorlist cachyos-v3-mirrorlist cachyos-v4-mirrorlist pacman; do
+        f=$(grep -oP "(?<=href=\")${p}-[0-9][^\"/]*-(any|x86_64)\.pkg\.tar\.zst(?=\")" <<<"$listing" | sort -uV | tail -n1 || true)
+        [ -n "$f" ] || { echo "No '$p' package found in $CACHY_URL/" >&2; return 1; }
+        cachy_sig_ok "$CACHY_URL/$f" || { echo "Missing/invalid signature for $f" >&2; return 1; }
+        CACHY_PKGS_U+=("$CACHY_URL/$f")
     done
-    sed -i 's/^CheckSpace/#CheckSpace/' "$conf"
+    printf 'Resolved: %s\n' "${CACHY_PKGS_U[@]##*/}"
+}
+
+# tweak_pacman_conf <pacman.conf>
+# Color, ILoveCandy, VerbosePkgLists and [multilib]. Idempotent.
+tweak_pacman_conf() {
+    local conf=$1
+    sed -i 's/^#Color/Color/' "$conf"
+    sed -i 's/^#ILoveCandy/ILoveCandy/' "$conf"
+    sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' "$conf"
+    # sed -i '/^ParallelDownloads[[:space:]]*=/c\ParallelDownloads = 10' "$conf"
     sed -i 's/^#\[multilib\]/[multilib]/' "$conf"
     sed -i '/^\[multilib\]/{n;s/^#//}' "$conf"
 }
@@ -95,21 +104,20 @@ import_cachy_key() {
 rank_mirrors() {
     pacman -S --noconfirm --needed cachyos-rate-mirrors
     cachyos-rate-mirrors
+    pacman -Sy
 }
 
 # Numbers of all partitions on the disk
 list_parts() { sgdisk -p "/dev/$DISK" | awk '$1 ~ /^[0-9]+$/ {print $1}'; }
 
-# Number of the ext4 data partition: the partition whose filesystem label is "Data"
-# (what `lsblk -o LABEL` shows) AND whose filesystem type is ext4. Both must be true;
-# a partition labeled "Data" with any other fstype does not count.
-# Prints nothing if not found.
+# Number of the NTFS data partition: the partition whose filesystem label is "Data"
+# (what `lsblk -o LABEL` shows), verified to be NTFS. Prints nothing if not found.
 find_data_part() {
     local n dev
     for n in $(list_parts); do
         dev=$(part "$n")
         [ "$(blkid -s LABEL -o value "$dev" 2>/dev/null)" = Data ] || continue
-        [ "$(blkid -s TYPE -o value "$dev" 2>/dev/null)" = ext4 ] || continue
+        [ "$(blkid -s TYPE -o value "$dev" 2>/dev/null)" = ntfs ] || continue
         echo "$n"
         return 0
     done
@@ -118,8 +126,7 @@ find_data_part() {
 
 # --- Questions ---
 lsblk -d -o NAME,SIZE,MODEL
-read -rp "Disk name [nvme0n1]: " DISK
-DISK=${DISK:-nvme0n1}
+read -rp "Disk name (e.g. nvme0n1, sda): " DISK
 case $DISK in *[0-9]) P=p ;; *) P= ;; esac
 part() { echo "/dev/$DISK$P$1"; }
 
@@ -127,20 +134,12 @@ read -rp "Default Partition Layout? (Y/n): " DEFAULT_LAYOUT
 [[ $DEFAULT_LAYOUT == [nN]* ]] && DEFAULT_LAYOUT=n || DEFAULT_LAYOUT=y
 
 EFI_LABEL=();  BOOT_LABEL=();  ROOT_LABEL=()
-DATA_NEW=n
 if [ "$DEFAULT_LAYOUT" = y ]; then
-    # If an ext4 partition labeled 'Data' exists: every other partition is deleted, then
-    # p1-p3 are recreated (root = largest free block). The data partition is never
-    # touched: if it isn't p4 it is renumbered to p4 (table entry only, no data moves).
-    # If it does not exist, or it exists and you choose to wipe the entire drive anyway
-    # (default N): the WHOLE disk is wiped and p1-p4 are created
-    # (root 200G, p4 = rest of the disk, ext4, labeled 'Data').
+    # Every partition except the NTFS partition labeled 'Data' gets deleted, then p1-p3
+    # are recreated. The NTFS data partition is never touched: if it isn't p4 it is
+    # renumbered to p4 (table entry only, no data moves).
     DATA_NO=$(find_data_part)
-    if [ -n "$DATA_NO" ]; then
-        read -rp "ext4 'Data' partition found (p$DATA_NO). Wipe the ENTIRE drive anyway? (y/N): " WIPE_ALL
-        if [[ $WIPE_ALL == [yY]* ]]; then DATA_NO=; fi
-    fi
-    [ -n "$DATA_NO" ] || DATA_NEW=y
+    [ -n "$DATA_NO" ] || { echo "No NTFS partition labeled 'Data' found on /dev/$DISK"; exit 1; }
     EFI=$(part 1);  BOOT=$(part 2);  ROOT=$(part 3);  EXTRA=$(part 4)
     FORMAT_EFI=y
     EXTRA_MNT=/mnt/data
@@ -151,7 +150,7 @@ else
     read -rp "Format EFI? (Y/n): " FORMAT_EFI
     read -rp "Boot (XBOOTLDR) partition no: " N;  BOOT=$(part "$N")
     read -rp "Root partition no: " N;  ROOT=$(part "$N")
-    read -rp "Extra Data (ext4) partition no (blank to skip): " N
+    read -rp "Extra NTFS partition no (blank to skip): " N
     if [ -n "$N" ]; then
         EXTRA=$(part "$N")
         read -rp "Extra mountpoint [/mnt/data]: " EXTRA_MNT
@@ -160,7 +159,8 @@ else
 fi
 read -rp "Hostname [archlinux]: " NEWHOST;  NEWHOST=${NEWHOST:-archlinux}
 read -rp "Username [shihab]: " NEWUSER;  NEWUSER=${NEWUSER:-shihab}
-read -rp "Password (used for root and $NEWUSER): " PASS
+read -rp "Root password: " ROOT_PASS
+read -rp "User password: " USER_PASS
 
 DETECTED_LEVEL=$(detect_level)
 echo
@@ -180,11 +180,7 @@ case $CPU_LEVEL in v3|v4|none) ;; *) echo "Invalid level: $CPU_LEVEL"; exit 1 ;;
 echo
 echo "Disk:     /dev/$DISK"
 if [ "$DEFAULT_LAYOUT" = y ]; then
-    if [ "$DATA_NEW" = n ]; then
-        echo "Layout:   default (wipe ALL partitions except ext4 data partition p$DATA_NO; create EFI 1G 'efi', boot 2G 'boot', root = largest free block '/')"
-    else
-        echo "Layout:   default (wipe the ENTIRE disk; create EFI 1G 'efi', boot 2G 'boot', root 200G '/', ext4 'Data' = rest of the disk)"
-    fi
+    echo "Layout:   default (wipe ALL partitions except NTFS data partition p$DATA_NO; create EFI 1G 'efi', boot 2G 'boot', root = rest '/')"
 else
     echo "Layout:   custom (existing partitions)"
 fi
@@ -192,15 +188,13 @@ echo "EFI:      $EFI (format: $FORMAT_EFI)"
 echo "Boot:     $BOOT (format)"
 echo "Root:     $ROOT (format)"
 echo "Extra:    ${EXTRA:-none}${EXTRA:+ -> $EXTRA_MNT}"
-if [ "$DEFAULT_LAYOUT" = y ] && [ "$DATA_NEW" = n ] && [ "$DATA_NO" != 4 ]; then
+if [ "$DEFAULT_LAYOUT" = y ] && [ "$DATA_NO" != 4 ]; then
     echo "          (data partition is currently p$DATA_NO, will be renumbered to p4)"
-fi
-if [ "$DATA_NEW" = y ]; then
-    echo "          (new ext4 partition, will be formatted)"
 fi
 echo "Hostname: $NEWHOST"
 echo "Username: $NEWUSER"
-echo "Password: $PASS"
+echo "Root pw:  $ROOT_PASS"
+echo "User pw:  $USER_PASS"
 echo "CachyOS:  $CPU_LEVEL"
 read -rp "Proceed? (Y/n): " OK
 [[ $OK == [nN]* ]] && exit 1
@@ -213,13 +207,13 @@ for e in $(efibootmgr | grep -oP '^Boot\K[0-9A-F]{4}'); do
 done
 
 # --- pacman.conf tweaks in the LIVE system (before any package installation) ---
-# pacstrap runs pacman with this host config (/etc/pacman.conf unless -C is given).
 tweak_pacman_conf /etc/pacman.conf
 
 # --- CachyOS repos + ranked mirrors in the LIVE system ---
 # Done before formatting so a network/key problem aborts before touching disks.
 if [ "$CPU_LEVEL" != none ]; then
     import_cachy_key
+    cachy_resolve_pkgs
     # Installs keyring, mirrorlists and CachyOS's pacman fork (needed for the
     # $arch_v3/$arch_v4 mirror variables and the automatic architecture check)
     pacman -U --noconfirm --needed "${CACHY_PKGS_U[@]}"
@@ -235,35 +229,26 @@ swapoff -a 2>/dev/null || true
 umount -R /mnt 2>/dev/null || true
 if [ "$DEFAULT_LAYOUT" = y ]; then
     # One sgdisk call = one atomic table write, processed in order:
-    # 1) delete every partition except the ext4 data partition, if one exists
-    # (signatures wiped first; with no data partition this deletes ALL partitions),
-    # 2) if the data partition exists and isn't p4, swap its table entry into slot 4
-    # (-r only swaps entries; sectors and data are untouched),
-    # 3) create the new partitions in the freed space (start/end 0 = largest free block):
-    #    - data partition exists: p1-p3, root takes the largest free block
-    #    - no data partition:     p1-p4, root = 200G, p4 (ext4 'Data') = the rest
+    # 1) delete every partition except the NTFS data partition (signatures wiped first),
+    # 2) if the data partition isn't p4, swap its table entry into slot 4 (-r only swaps
+    # entries; sectors and data are untouched), 3) create p1-p3 in the freed space
+    # (start/end 0 = largest free block).
     SGDISK_ARGS=()
     for n in $(list_parts); do
         [ "$n" = "$DATA_NO" ] && continue
         wipefs -a "$(part "$n")" 2>/dev/null || true
         SGDISK_ARGS+=(-d "$n")
     done
-    if [ "$DATA_NEW" = n ]; then
-        if [ "$DATA_NO" != 4 ]; then SGDISK_ARGS+=(-r "4:$DATA_NO"); fi
-        SGDISK_ARGS+=(-n 1:0:+1G -t 1:ef00 -n 2:0:+2G -t 2:ea00 -n 3:0:0 -t 3:8300)
-    else
-        SGDISK_ARGS+=(-n 1:0:+1G -t 1:ef00 -n 2:0:+2G -t 2:ea00 -n 3:0:+200G -t 3:8300 -n 4:0:0 -t 4:8300)
-    fi
+    if [ "$DATA_NO" != 4 ]; then SGDISK_ARGS+=(-r "4:$DATA_NO"); fi
+    SGDISK_ARGS+=(-n 1:0:+1G -t 1:ef00 -n 2:0:+2G -t 2:ea00 -n 3:0:0 -t 3:8300)
     sgdisk "${SGDISK_ARGS[@]}" "/dev/$DISK"
     partprobe "/dev/$DISK"
     udevadm settle
     wipefs -a "$EFI" "$BOOT" "$ROOT"
-    if [ "$DATA_NEW" = y ]; then wipefs -a "$EXTRA"; fi
 fi
 if [ "$FORMAT_EFI" = y ]; then mkfs.fat -F 32 "${EFI_LABEL[@]}" "$EFI"; fi
 mkfs.ext4 -F "${BOOT_LABEL[@]}" "$BOOT"
 mkfs.ext4 -F "${ROOT_LABEL[@]}" "$ROOT"
-if [ "$DATA_NEW" = y ]; then mkfs.ext4 -F -L Data "$EXTRA"; fi
 mount "$ROOT" /mnt
 mount -o fmask=0177,dmask=0077 --mkdir "$EFI" /mnt/efi
 mount --mkdir "$BOOT" /mnt/boot
@@ -282,8 +267,8 @@ fi
 pacstrap -K /mnt "${PACSTRAP_PKGS[@]}"
 
 # --- pacman.conf tweaks in the NEW system ---
-# pacstrap does not use this file. It only exists once pacstrap has installed pacman;
-# the tweak applies from the arch-chroot stage onward and to the installed system.
+# The file only exists once pacstrap has installed pacman; this runs before any
+# further package installation (the chroot setup below).
 tweak_pacman_conf /mnt/etc/pacman.conf
 
 # --- CachyOS repos + keyring in the NEW system (persists after reboot) ---
@@ -313,9 +298,11 @@ cat > /mnt/setup.sh <<EOF
 #!/bin/bash
 set -e
 sed -i '/^HOOKS=/ s/systemd/systemd plymouth/' /etc/mkinitcpio.conf
-pacman -S --needed --noconfirm base-devel intel-ucode networkmanager cachyos-rate-mirrors micro pacman-contrib bash-completion plymouth zram-generator
+pacman -S --needed --noconfirm base-devel intel-ucode networkmanager micro pacman-contrib bash-completion plymouth zram-generator
 systemctl enable NetworkManager
 echo -e "[zram0]\ncompression-algorithm = zstd\nzram-size = 8192\nswap-priority = 100\nfs-type = swap" > /etc/systemd/zram-generator.conf
+curl -fL -o /usr/share/kbd/consolefonts/ter-122b.psf.gz https://github.com/Sn0wCircuit/scratch/raw/refs/heads/main/ter-122b.psf.gz
+echo "FONT=ter-122b" > /etc/vconsole.conf
 ln -sf /usr/share/zoneinfo/Asia/Dhaka /etc/localtime
 hwclock --systohc
 sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
@@ -343,8 +330,8 @@ Description=Mount data drive ($EXTRA_MNT)
 [Mount]
 What=/dev/disk/by-partuuid/$EXTRA_PARTUUID
 Where=$EXTRA_MNT
-Type=ext4
-Options=defaults,exec,rw,noatime
+Type=ntfs
+Options=defaults,uid=1000,gid=1000,rw,exec,umask=000
 
 [Install]
 WantedBy=multi-user.target
@@ -357,22 +344,11 @@ arch-chroot -S /mnt /bin/bash /setup.sh
 rm /mnt/setup.sh
 
 # Passwords set outside the script file so special characters are safe
-echo "root:$PASS" | arch-chroot /mnt chpasswd
-echo "$NEWUSER:$PASS" | arch-chroot /mnt chpasswd
+echo "root:$ROOT_PASS" | arch-chroot /mnt chpasswd
+echo "$NEWUSER:$USER_PASS" | arch-chroot /mnt chpasswd
 
-# Freshly created Data partition only: mkfs leaves its root directory owned by root, so
-# hand it to the new user (stored on the filesystem, persists). An existing Data
-# partition keeps its ownership untouched.
-if [ "$DATA_NEW" = y ]; then
-    mount "$EXTRA" "/mnt$EXTRA_MNT"
-    arch-chroot /mnt chown "$NEWUSER:" "$EXTRA_MNT"
-    umount "/mnt$EXTRA_MNT"
-fi
-
-# --- Finalize: ext4 EFI driver & Consolefont---
+# --- Finalize: ext4 EFI driver ---
 mkdir -p /mnt/efi/EFI/systemd/drivers
-cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
-cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/
-echo "FONT=ter-122b" > /mnt/etc/vconsole.conf
+curl -fL -o /mnt/efi/EFI/systemd/drivers/ext4_x64.efi https://github.com/Sn0wCircuit/scratch/raw/refs/heads/main/ext4_x64.efi
 umount -R /mnt
-echo "Done! Run: 'sudo systemctl reboot'"
+echo "Done! Reboot now."
