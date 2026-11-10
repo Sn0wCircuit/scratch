@@ -95,7 +95,6 @@ import_cachy_key() {
 rank_mirrors() {
     pacman -S --noconfirm --needed cachyos-rate-mirrors
     cachyos-rate-mirrors
-    pacman -Sy
 }
 
 # Numbers of all partitions on the disk
