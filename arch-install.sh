@@ -13,7 +13,7 @@ CACHY_PKGS_U=(
     "$CACHY_URL/cachyos-mirrorlist-27-1-any.pkg.tar.zst"
     "$CACHY_URL/cachyos-v3-mirrorlist-27-1-any.pkg.tar.zst"
     "$CACHY_URL/cachyos-v4-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/pacman-7.1.0.r9.g54d9411-5-x86_64.pkg.tar.zst"
+    "$CACHY_URL/pacman-7.1.0.r9.g54d9411-6-x86_64.pkg.tar.zst"
 )
 
 # Highest x86-64 level this CPU supports (same check CachyOS's script uses)
