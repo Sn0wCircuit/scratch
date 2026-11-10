@@ -8,13 +8,6 @@ timedatectl set-ntp true
 # https://wiki.cachyos.org/features/optimized_repos/
 CACHY_KEY=F3B607488DB35A47
 CACHY_URL=https://mirror.cachyos.org/repo/x86_64/cachyos
-CACHY_PKGS_U=(
-    "$CACHY_URL/cachyos-keyring-20240331-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-v3-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/cachyos-v4-mirrorlist-27-1-any.pkg.tar.zst"
-    "$CACHY_URL/pacman-7.1.0.r9.g54d9411-6-x86_64.pkg.tar.zst"
-)
 
 # Highest x86-64 level this CPU supports (same check CachyOS's script uses)
 detect_level() {
@@ -25,6 +18,27 @@ detect_level() {
     else echo none
     fi
 }
+cachy_sig_ok() {
+    local tmp rc; tmp=$(mktemp)
+    if curl -fsSL --retry 2 "$1.sig" -o "$tmp" 2>/dev/null \
+       && [ -s "$tmp" ] && ! grep -aqiE '<html|<!doctype' "$tmp"; then rc=0; else rc=1; fi
+    rm -f "$tmp"; return $rc
+}
+
+# Resolve the newest filenames from the mirror's directory listing
+cachy_resolve_pkgs() {
+    local listing p f
+    listing=$(curl -fsSL --retry 3 "$CACHY_URL/") || { echo "Cannot fetch $CACHY_URL/" >&2; return 1; }
+    CACHY_PKGS_U=()
+    for p in cachyos-keyring cachyos-mirrorlist cachyos-v3-mirrorlist cachyos-v4-mirrorlist pacman; do
+        f=$(grep -oP "(?<=href=\")${p}-[0-9][^\"/]*-(any|x86_64)\.pkg\.tar\.zst(?=\")" <<<"$listing" | sort -uV | tail -n1 || true)
+        [ -n "$f" ] || { echo "No '$p' package found in $CACHY_URL/" >&2; return 1; }
+        cachy_sig_ok "$CACHY_URL/$f" || { echo "Missing/invalid signature for $f" >&2; return 1; }
+        CACHY_PKGS_U+=("$CACHY_URL/$f")
+    done
+    printf 'Resolved: %s\n' "${CACHY_PKGS_U[@]##*/}"
+}
+
 
 # tweak_pacman_conf <pacman.conf>
 # Color, ILoveCandy, VerbosePkgLists, DisableDownloadTimeout, ParallelDownloads = 10,
@@ -220,6 +234,7 @@ tweak_pacman_conf /etc/pacman.conf
 # Done before formatting so a network/key problem aborts before touching disks.
 if [ "$CPU_LEVEL" != none ]; then
     import_cachy_key
+    cachy_resolve_pkgs
     # Installs keyring, mirrorlists and CachyOS's pacman fork (needed for the
     # $arch_v3/$arch_v4 mirror variables and the automatic architecture check)
     pacman -U --noconfirm --needed "${CACHY_PKGS_U[@]}"
