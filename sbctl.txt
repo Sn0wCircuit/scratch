@@ -1,0 +1,10 @@
+sudo sbctl create-keys
+sudo sbctl enroll-keys -m -f
+sudo sbctl sign -s /boot/vmlinuz-linux-cachyos
+sudo sbctl sign -s /efi/EFI/BOOT/BOOTX64.EFI
+sudo sbctl sign -s /efi/EFI/systemd/systemd-bootx64.efi
+sudo sbctl sign -s /efi/EFI/systemd/drivers/ext4_x64.efi
+sudo sbctl sign -s -o /usr/lib/systemd/boot/efi/systemd-bootx64.efi.signed /usr/lib/systemd/boot/efi/systemd-bootx64.efi
+sudo sbctl list-files
+sudo sbctl status
+sudo reboot
