@@ -401,9 +401,6 @@ tweak_pacman_conf /mnt/etc/pacman.conf
 
 # --- CachyOS repos + keyring in the NEW system (persists after reboot) ---
 [ -f /mnt/etc/pacman.conf ] || cp /etc/pacman.conf /mnt/etc/pacman.conf
-# backup of the pre-CachyOS config, like the official script (/etc/pacman.conf.bak),
-# so the wiki's repo-removal steps (mv /etc/pacman.conf.bak /etc/pacman.conf) work
-cp -f /mnt/etc/pacman.conf /mnt/etc/pacman.conf.bak
 # hardcoded mirrorlists; written after pacstrap, which installed the packages' default
 # CachyOS mirrorlists and copied the host's Arch mirrorlist
 write_arch_mirrorlist /mnt
