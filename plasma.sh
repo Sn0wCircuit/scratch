@@ -22,7 +22,7 @@ sudo curl -fL -o /usr/lib/udev/rules.d/80-nvidia-pm.rules https://gitlab.com/asu
 sudo systemctl enable nvidia-powerd.service
 
 # Fonts & Audio
-sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji ttf-jetbrains-mono-nerd
+sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
 
 # Install KDE Plasma
 sudo pacman -S --needed --noconfirm plasma-meta ark dolphin gwenview konsole kate kcolorchooser tesseract-data-eng wl-clipboard
@@ -129,9 +129,7 @@ warp-cli --accept-tos mode warp+doh
 # Fix “Limited Connectivity”
 warp-cli --accept-tos tunnel ip add 95.216.195.133
 
-sudo cachyos-rate-mirrors || echo -e "\e[1;33mMirror ranking failed\e[0m"
 sudo pacman -Syu --noconfirm
-sudo pacman -S --needed --noconfirm noto-fonts-extra noto-fonts-cjk
 
 echo -e "\e[1;32m=== Setup complete ===\e[0m"
 
