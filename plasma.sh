@@ -129,9 +129,7 @@ warp-cli --accept-tos mode warp+doh
 # Fix “Limited Connectivity”
 warp-cli --accept-tos tunnel ip add 95.216.195.133
 
-sudo pacman -Syu --noconfirm
-
-echo -e "\e[1;32m=== Setup complete ===\e[0m"
+echo -e "\e[1;32m=== Setup complete. Reboot: sudo systemctl reboot ===\e[0m"
 
 # AFTER LOGIN
 #1d99f3
