@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Same as the official cachyos-repo.sh: force English/C output so the grep-based checks
+# on tool output (ld.so --help) can't be broken by localization.
+export LC_MESSAGES=C
+export LANG=C
+
 timedatectl set-ntp true
 
 # --- CachyOS repo settings (taken from CachyOS's official cachyos-repo.sh) ---
@@ -9,7 +14,10 @@ timedatectl set-ntp true
 CACHY_KEY=F3B607488DB35A47
 CACHY_URL=https://mirror.cachyos.org/repo/x86_64/cachyos
 
-# Highest x86-64 level this CPU supports (same check CachyOS's script uses)
+# Highest x86-64 level this CPU supports, same check as the official script:
+# /lib/ld-linux-x86-64.so.2 --help reports it as "(supported, searched)".
+# znver4 is never auto-detected (the official check needs gcc, which the live ISO
+# does not have): choose it manually at the prompt on an AMD Zen 4/5 CPU.
 detect_level() {
     local out
     out=$(/lib/ld-linux-x86-64.so.2 --help 2>/dev/null || true)
@@ -17,6 +25,14 @@ detect_level() {
     elif grep -q 'x86-64-v3 (supported, searched)' <<<"$out"; then echo v3
     else echo none
     fi
+}
+# none < v3 < v4 = znver4 (znver4 needs x86-64-v4, same as the official script)
+level_rank() {
+    case $1 in
+        none) echo 0 ;;
+        v3) echo 1 ;;
+        v4|znver4) echo 2 ;;
+    esac
 }
 cachy_sig_ok() {
     local tmp rc; tmp=$(mktemp)
@@ -42,14 +58,17 @@ cachy_resolve_pkgs() {
 
 # tweak_pacman_conf <pacman.conf>
 # Color, ILoveCandy, VerbosePkgLists, DisableDownloadTimeout, ParallelDownloads = 10,
-# CheckSpace off and [multilib]. Idempotent.
+# NoExtract for the hardcoded mirrorlists, CheckSpace off and [multilib]. Idempotent.
+# NoExtract (not NoUpgrade, which still drops a .pacnew) makes pacman never extract the
+# Arch and CachyOS mirrorlists from their packages, so our hardcoded lists are never
+# replaced and no .pacnew files appear. The lists are written after the package installs.
 tweak_pacman_conf() {
     local conf=$1 opt key
     # Not just uncommenting: stock Arch pacman.conf lacks some of these lines (e.g.
     # ILoveCandy), so a plain s/^#X/X/ silently does nothing. For each option, drop any
     # existing line (commented or not, any value) and add one active line under [options].
     # Each add goes right under [options], so the list is in reverse of the final order.
-    for opt in "ParallelDownloads = 10" DisableDownloadTimeout VerbosePkgLists ILoveCandy Color; do
+    for opt in "NoExtract = etc/pacman.d/mirrorlist etc/pacman.d/cachyos-mirrorlist etc/pacman.d/cachyos-v3-mirrorlist etc/pacman.d/cachyos-v4-mirrorlist" "ParallelDownloads = 10" DisableDownloadTimeout VerbosePkgLists ILoveCandy Color; do
         key=${opt%% *}
         sed -i "/^#\?$key\b/d" "$conf"
         sed -i "/^\[options\]/a $opt" "$conf"
@@ -59,16 +78,29 @@ tweak_pacman_conf() {
     sed -i '/^\[multilib\]/{n;s/^#//}' "$conf"
 }
 
-# add_cachyos_repos <pacman.conf> <v3|v4>
+# add_cachyos_repos <pacman.conf> <znver4|v4|v3|none>
 # Removes any existing [cachyos*] sections, then inserts the CachyOS repos
 # ABOVE [core] (required: first repo containing a package wins). Idempotent.
+# Blocks are exactly the official ones (install-repo.awk / install-v4-repo.awk /
+# install-znver4-repo.awk, and the wiki's x86-64-only entry):
+#   v3     : [cachyos-v3] [cachyos-core-v3] [cachyos-extra-v3] [cachyos]  (cachyos-v3-mirrorlist)
+#   v4     : [cachyos-v4] [cachyos-core-v4] [cachyos-extra-v4] [cachyos]  (cachyos-v4-mirrorlist)
+#   znver4 : [cachyos-znver4] [cachyos-core-znver4] [cachyos-extra-znver4] [cachyos]
+#            (also cachyos-v4-mirrorlist, there is no znver4 mirrorlist)
+#   none   : [cachyos] only (cachyos-mirrorlist)
 add_cachyos_repos() {
-    local conf=$1 level=$2 blockfile
+    local conf=$1 level=$2 blockfile ml
+    case $level in
+        znver4) ml=v4 ;;
+        *)      ml=$level ;;
+    esac
     blockfile=$(mktemp)
     {
-        printf '[cachyos-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$level"
-        printf '[cachyos-core-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$level"
-        printf '[cachyos-extra-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$level"
+        if [ "$level" != none ]; then
+            printf '[cachyos-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$ml"
+            printf '[cachyos-core-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$ml"
+            printf '[cachyos-extra-%s]\nInclude = /etc/pacman.d/cachyos-%s-mirrorlist\n\n' "$level" "$ml"
+        fi
         printf '[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n'
     } > "$blockfile"
     awk -v bf="$blockfile" '
@@ -85,14 +117,22 @@ add_cachyos_repos() {
     rm -f "$blockfile"
     # CachyOS's pacman fork picks x86_64 / x86_64_v3 / x86_64_v4 automatically
     sed -i 's/^Architecture[[:space:]]*=.*/Architecture = auto/' "$conf"
-    grep -q "^\[cachyos-core-$level\]" "$conf" || { echo "Failed to add CachyOS repos to $conf" >&2; exit 1; }
+    if ! grep -q '^\[cachyos\]' "$conf" \
+       || { [ "$level" != none ] && ! grep -q "^\[cachyos-core-$level\]" "$conf"; }; then
+        echo "Failed to add CachyOS repos to $conf" >&2; exit 1
+    fi
 }
 
 # Trust the CachyOS signing key in the live system's keyring
 import_cachy_key() {
     local ok=0 ks
-    # wait (max 60s) for the live ISO's keyring init
-    for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
+    # wait (max 60s) for the live ISO's keyring init (archiso's pacman-init.service runs
+    # `pacman-key --init` and `--populate`; trustdb.gpg already exists before populate ends)
+    if systemctl cat pacman-init.service >/dev/null 2>&1; then
+        for _ in $(seq 60); do systemctl is-active --quiet pacman-init.service && break; sleep 1; done
+    else
+        for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
+    fi
     for ks in hkps://keyserver.ubuntu.com keyserver.ubuntu.com; do
         if pacman-key --recv-keys "$CACHY_KEY" --keyserver "$ks"; then ok=1; break; fi
     done
@@ -104,11 +144,36 @@ import_cachy_key() {
     pacman-key --lsign-key "$CACHY_KEY"
 }
 
-# Rank the Arch + CachyOS mirrors with CachyOS's own tool (needs the [cachyos] repo).
-# It rewrites /etc/pacman.d/mirrorlist and the cachyos mirrorlists.
-rank_mirrors() {
-    pacman -S --noconfirm --needed cachyos-rate-mirrors
-    cachyos-rate-mirrors
+# Hardcoded mirrorlists (no mirror ranking). <root> is '' for the live system, /mnt for the new one.
+# Quoted heredocs: $repo and $arch must stay literal, pacman expands them.
+write_arch_mirrorlist() {
+    mkdir -p "$1/etc/pacman.d"
+    cat > "$1/etc/pacman.d/mirrorlist" <<'ARCH_MIRRORS'
+## Bangladesh
+Server = https://mirror.xeonbd.com/archlinux/$repo/os/$arch
+Server = http://mirror.xeonbd.com/archlinux/$repo/os/$arch
+Server = https://mirror.limda.net/archlinux/$repo/os/$arch
+Server = http://mirror.limda.net/archlinux/$repo/os/$arch
+ARCH_MIRRORS
+}
+# cachyos-mirrorlist: limda first, then CachyOS's own global tier-1 CDNs as fallback; pacman
+# tries the servers top to bottom. The v3/v4 lists are derived from it exactly like the
+# official cachyos-rate-mirrors does (/$arch/ -> /$arch_v3/ and /$arch_v4/, variables provided
+# by CachyOS's pacman fork), so all three always match.
+write_cachyos_mirrorlist() {
+    local d="$1/etc/pacman.d"
+    mkdir -p "$d"
+    cat > "$d/cachyos-mirrorlist" <<'CACHY_MIRRORS'
+## Bangladesh
+Server = https://mirror.limda.net/cachy/repo/$arch/$repo
+Server = http://mirror.limda.net/cachy/repo/$arch/$repo
+## CDN77 (World Wide Datacenters), tier 1
+Server = https://cdn77.cachyos.org/repo/$arch/$repo
+## Rerouted to mirror, tier 1
+Server = https://cdn.cachyos.org/repo/$arch/$repo
+CACHY_MIRRORS
+    sed 's|/$arch/|/$arch_v3/|g' "$d/cachyos-mirrorlist" > "$d/cachyos-v3-mirrorlist"
+    sed 's|/$arch/|/$arch_v4/|g' "$d/cachyos-mirrorlist" > "$d/cachyos-v4-mirrorlist"
 }
 
 # Numbers of all partitions on the disk
@@ -182,10 +247,17 @@ echo "Detected CPU level: $DETECTED_LEVEL"
 if [ "$DETECTED_LEVEL" = v4 ]; then
     echo "NOTE: Intel 12th gen (Alder Lake) and newer can report v4 but cannot run AVX-512."
     echo "      If your CPU is one of those, choose v3."
+    echo "NOTE: on an AMD Zen 4/5 CPU, choose znver4 (it cannot be auto-detected here)."
 fi
-read -rp "CachyOS optimized repos: v4 / v3 / none [$DETECTED_LEVEL]: " CPU_LEVEL
+read -rp "CachyOS optimized repos: znver4 / v4 / v3 / none [$DETECTED_LEVEL]: " CPU_LEVEL
 CPU_LEVEL=${CPU_LEVEL:-$DETECTED_LEVEL}
-case $CPU_LEVEL in v3|v4|none) ;; *) echo "Invalid level: $CPU_LEVEL"; exit 1 ;; esac
+case $CPU_LEVEL in znver4|v4|v3|none) ;; *) echo "Invalid level: $CPU_LEVEL"; exit 1 ;; esac
+# Same refusal as the official script (add_specific_repo): a level the CPU does not
+# report as supported is not added. v3 needs x86-64-v3, v4 and znver4 need x86-64-v4.
+if [ "$(level_rank "$CPU_LEVEL")" -gt "$(level_rank "$DETECTED_LEVEL")" ]; then
+    echo "This CPU does not report support for '$CPU_LEVEL' (detected: $DETECTED_LEVEL)."
+    exit 1
+fi
 
 # Anything other than n/N means yes
 [[ $FORMAT_EFI == [nN]* ]] && FORMAT_EFI=n || FORMAT_EFI=y
@@ -230,20 +302,20 @@ done
 # pacstrap runs pacman with this host config (/etc/pacman.conf unless -C is given).
 tweak_pacman_conf /etc/pacman.conf
 
-# --- CachyOS repos + ranked mirrors in the LIVE system ---
+# --- Hardcoded Arch mirrorlist in the LIVE system ---
+write_arch_mirrorlist ""
+
+# --- CachyOS repos in the LIVE system ---
 # Done before formatting so a network/key problem aborts before touching disks.
-if [ "$CPU_LEVEL" != none ]; then
-    import_cachy_key
-    cachy_resolve_pkgs
-    # Installs keyring, mirrorlists and CachyOS's pacman fork (needed for the
-    # $arch_v3/$arch_v4 mirror variables and the automatic architecture check)
-    pacman -U --noconfirm --needed "${CACHY_PKGS_U[@]}"
-    add_cachyos_repos /etc/pacman.conf "$CPU_LEVEL"
-    pacman -Sy
-    rank_mirrors
-    echo "Live pacman: $(pacman -Q pacman)"
-    pacman -Si linux | grep -E '^(Repository|Version|Architecture)' || true
-fi
+import_cachy_key
+cachy_resolve_pkgs
+# Installs keyring, mirrorlists and CachyOS's pacman fork (needed for the
+# $arch_v3/$arch_v4 mirror variables and the automatic architecture check)
+pacman -U --noconfirm --needed "${CACHY_PKGS_U[@]}"
+# after the -U above, which installs the packages' default mirrorlists
+write_cachyos_mirrorlist ""
+add_cachyos_repos /etc/pacman.conf "$CPU_LEVEL"
+echo "Live pacman: $(pacman -Q pacman)"
 
 # --- Partition, format & mount ---
 swapoff -a 2>/dev/null || true
@@ -288,12 +360,11 @@ fi
 
 # --- Base install ---
 mkdir -p /mnt/etc && touch /mnt/etc/vconsole.conf
+# cachyos/pacman: make sure the fork (not a generic rebuild) lands in the new system;
+# the keyring + mirrorlists are required by the repos we add to its pacman.conf below
+# (the official script installs all five packages for every level, including x86-64-only)
 PACSTRAP_PKGS=(base linux-cachyos linux-firmware)
-if [ "$CPU_LEVEL" != none ]; then
-    # cachyos/pacman: make sure the fork (not a generic rebuild) lands in the new system;
-    # the keyring + mirrorlists are required by the repos we add to its pacman.conf below
-    PACSTRAP_PKGS+=(cachyos/pacman cachyos-keyring cachyos-mirrorlist cachyos-v3-mirrorlist cachyos-v4-mirrorlist)
-fi
+PACSTRAP_PKGS+=(cachyos/pacman cachyos-keyring cachyos-mirrorlist cachyos-v3-mirrorlist cachyos-v4-mirrorlist)
 pacstrap -K /mnt "${PACSTRAP_PKGS[@]}"
 
 # --- pacman.conf tweaks in the NEW system ---
@@ -302,22 +373,24 @@ pacstrap -K /mnt "${PACSTRAP_PKGS[@]}"
 tweak_pacman_conf /mnt/etc/pacman.conf
 
 # --- CachyOS repos + keyring in the NEW system (persists after reboot) ---
-if [ "$CPU_LEVEL" != none ]; then
-    [ -f /mnt/etc/pacman.conf ] || cp /etc/pacman.conf /mnt/etc/pacman.conf
-    # keep the ranked CachyOS mirrorlists from the live system
-    # (pacstrap already copied the ranked Arch /etc/pacman.d/mirrorlist)
-    cp -f /etc/pacman.d/cachyos-mirrorlist /etc/pacman.d/cachyos-v3-mirrorlist /etc/pacman.d/cachyos-v4-mirrorlist /mnt/etc/pacman.d/
-    add_cachyos_repos /mnt/etc/pacman.conf "$CPU_LEVEL"
-    # trust every installed keyring (archlinux + cachyos) in the new system
-    arch-chroot /mnt /bin/bash -c '
-        set -e
-        [ -f /etc/pacman.d/gnupg/trustdb.gpg ] || pacman-key --init
-        cd /usr/share/pacman/keyrings
-        names=()
-        for f in *.gpg; do names+=("${f%.gpg}"); done
-        pacman-key --populate "${names[@]}"
-    '
-fi
+[ -f /mnt/etc/pacman.conf ] || cp /etc/pacman.conf /mnt/etc/pacman.conf
+# backup of the pre-CachyOS config, like the official script (/etc/pacman.conf.bak),
+# so the wiki's repo-removal steps (mv /etc/pacman.conf.bak /etc/pacman.conf) work
+cp -f /mnt/etc/pacman.conf /mnt/etc/pacman.conf.bak
+# hardcoded mirrorlists; written after pacstrap, which installed the packages' default
+# CachyOS mirrorlists and copied the host's Arch mirrorlist
+write_arch_mirrorlist /mnt
+write_cachyos_mirrorlist /mnt
+add_cachyos_repos /mnt/etc/pacman.conf "$CPU_LEVEL"
+# trust every installed keyring (archlinux + cachyos) in the new system
+arch-chroot /mnt /bin/bash -c '
+    set -e
+    [ -f /etc/pacman.d/gnupg/trustdb.gpg ] || pacman-key --init
+    cd /usr/share/pacman/keyrings
+    names=()
+    for f in *.gpg; do names+=("${f%.gpg}"); done
+    pacman-key --populate "${names[@]}"
+'
 
 # --- Fstab (PARTUUID-based) ---
 genfstab -t PARTUUID /mnt > /mnt/etc/fstab
@@ -328,7 +401,7 @@ cat > /mnt/setup.sh <<EOF
 #!/bin/bash
 set -e
 sed -i '/^HOOKS=/ s/systemd/systemd plymouth/' /etc/mkinitcpio.conf
-pacman -S --needed --noconfirm base-devel intel-ucode networkmanager cachyos-rate-mirrors micro pacman-contrib bash-completion plymouth zram-generator
+pacman -S --needed --noconfirm base-devel intel-ucode networkmanager micro pacman-contrib bash-completion plymouth zram-generator
 systemctl enable NetworkManager
 echo -e "[zram0]\ncompression-algorithm = zstd\nzram-size = 8192\nswap-priority = 100\nfs-type = swap" > /etc/systemd/zram-generator.conf
 ln -sf /usr/share/zoneinfo/Asia/Dhaka /etc/localtime
@@ -390,4 +463,4 @@ cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
 cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/
 echo "FONT=ter-122b" > /mnt/etc/vconsole.conf
 umount -R /mnt
-echo "Done! Reboot now."
+echo "Done! Reboot: sudo systemctl reboot"
