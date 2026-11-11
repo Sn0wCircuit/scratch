@@ -308,13 +308,25 @@ write_arch_mirrorlist ""
 # Done before formatting so a network/key problem aborts before touching disks.
 import_cachy_key
 cachy_resolve_pkgs
-# Installs keyring, mirrorlists and CachyOS's pacman fork (needed for the
-# $arch_v3/$arch_v4 mirror variables and the automatic architecture check)
-pacman -U --noconfirm --needed "${CACHY_PKGS_U[@]}"
+# Live ISO workaround: CachyOS's pacman fork can need a newer libcrypto than the ISO has,
+# so it is NOT installed in the live system (pacstrap still installs it into the new one).
+# Only the keyring and mirrorlists go in here; the live stock pacman gets literal
+# x86_64_v3/x86_64_v4 paths and a multi-value Architecture instead of the fork's variables.
+LIVE_PKGS=()
+for u in "${CACHY_PKGS_U[@]}"; do [[ ${u##*/} == pacman-* ]] || LIVE_PKGS+=("$u"); done
+pacman -U --noconfirm --needed "${LIVE_PKGS[@]}"
 # after the -U above, which installs the packages' default mirrorlists
 write_cachyos_mirrorlist ""
+sed -i 's|\$arch_v3|x86_64_v3|g' /etc/pacman.d/cachyos-v3-mirrorlist
+sed -i 's|\$arch_v4|x86_64_v4|g' /etc/pacman.d/cachyos-v4-mirrorlist
 add_cachyos_repos /etc/pacman.conf "$CPU_LEVEL"
-echo "Live pacman: $(pacman -Q pacman)"
+case $CPU_LEVEL in
+    v3)        LIVE_ARCH="x86_64 x86_64_v3" ;;
+    v4|znver4) LIVE_ARCH="x86_64 x86_64_v3 x86_64_v4" ;;
+    *)         LIVE_ARCH="x86_64" ;;
+esac
+sed -i "s/^Architecture[[:space:]]*=.*/Architecture = $LIVE_ARCH/" /etc/pacman.conf
+echo "Live pacman: $(pacman -Q pacman) (stock, Architecture = $LIVE_ARCH)"
 
 # --- Partition, format & mount ---
 swapoff -a 2>/dev/null || true
