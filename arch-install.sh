@@ -153,6 +153,12 @@ Server = https://mirror.xeonbd.com/archlinux/$repo/os/$arch
 Server = http://mirror.xeonbd.com/archlinux/$repo/os/$arch
 Server = https://mirror.limda.net/archlinux/$repo/os/$arch
 Server = http://mirror.limda.net/archlinux/$repo/os/$arch
+## Worldwide
+Server = https://fastly.mirror.pkgbuild.com/$repo/os/$arch
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
+Server = https://ftpmirror.infania.net/mirror/archlinux/$repo/os/$arch
+Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch
+Server = http://mirror.rackspace.com/archlinux/$repo/os/$arch
 ARCH_MIRRORS
 }
 # cachyos-mirrorlist: limda first, then CachyOS's own global tier-1 CDNs as fallback; pacman
@@ -166,10 +172,20 @@ write_cachyos_mirrorlist() {
 ## Bangladesh
 Server = https://mirror.limda.net/cachy/repo/$arch/$repo
 Server = http://mirror.limda.net/cachy/repo/$arch/$repo
-## CDN77 (World Wide Datacenters), tier 1
+## CDN77 (World Wide Datacenters)
+## tier=1 code=GLOBAL
 Server = https://cdn77.cachyos.org/repo/$arch/$repo
-## Rerouted to mirror, tier 1
+## Rerouted to mirror
+## tier=1 code=GLOBAL
 Server = https://cdn.cachyos.org/repo/$arch/$repo
+## tier=1 code=GLOBAL
+Server = https://cdn.lansing2600.org/cachyos/repo/$arch/$repo
+## tier=2 code=GLOBAL
+Server = https://mirror.krfoss.org/cachyos/repo/$arch/$repo
+## tier=2 code=GLOBAL
+Server = https://mirror5.krfoss.org/cachyos/repo/$arch/$repo
+## tier=2 code=GLOBAL
+Server = https://cachyos.mirror.sahil.world/repo/$arch/$repo
 CACHY_MIRRORS
     sed 's|/$arch/|/$arch_v3/|g' "$d/cachyos-mirrorlist" > "$d/cachyos-v3-mirrorlist"
     sed 's|/$arch/|/$arch_v4/|g' "$d/cachyos-mirrorlist" > "$d/cachyos-v4-mirrorlist"
