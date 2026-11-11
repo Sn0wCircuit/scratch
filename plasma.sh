@@ -31,7 +31,7 @@ sudo pacman -S --needed --noconfirm plasma-meta ark dolphin gwenview konsole kat
 systemctl --user enable pipewire pipewire-pulse wireplumber
 
 # Applications & Tools
-sudo pacman -S --needed --noconfirm brave-origin-bin easyeffects lsp-plugins-lv2 asusctl rog-control-center mpv aria2 fastfetch openssh
+sudo pacman -S --needed --noconfirm brave-origin-bin easyeffects lsp-plugins-lv2 asusctl rog-control-center mpv aria2 fastfetch openssh sbctl
 
 # mpv Configuration
 mkdir -p ~/.config/mpv
