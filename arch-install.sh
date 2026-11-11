@@ -125,24 +125,23 @@ add_cachyos_repos() {
 
 # Trust the CachyOS signing key in the live system's keyring
 import_cachy_key() {
-    local ok=0 ks
-    # wait (max 60s) for the live ISO's keyring init (archiso's pacman-init.service runs
-    # `pacman-key --init` and `--populate`; trustdb.gpg already exists before populate ends)
+    local f
+    # wait (max 60s) for the live ISO's keyring init
     if systemctl cat pacman-init.service >/dev/null 2>&1; then
         for _ in $(seq 60); do systemctl is-active --quiet pacman-init.service && break; sleep 1; done
     else
         for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
     fi
-    for ks in hkps://keyserver.ubuntu.com keyserver.ubuntu.com; do
-        if pacman-key --recv-keys "$CACHY_KEY" --keyserver "$ks"; then ok=1; break; fi
-    done
-    if [ $ok -eq 0 ]; then
-        echo "Keyserver failed, trying plain HTTPS download of the key..."
-        curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$CACHY_KEY" -o /tmp/cachyos.asc
-        pacman-key --add /tmp/cachyos.asc
-    fi
+    # Key comes from the keyring package on the CachyOS mirror (no keyserver needed)
+    f=$(curl -fsSL --retry 3 "$CACHY_URL/" | grep -oP '(?<=href=")cachyos-keyring-[0-9][^"/]*-any\.pkg\.tar\.zst(?=")' | sort -uV | tail -n1)
+    [ -n "$f" ] || { echo "Cannot find cachyos-keyring on mirror" >&2; exit 1; }
+    rm -rf /tmp/ck; mkdir -p /tmp/ck
+    curl -fsSL --retry 3 "$CACHY_URL/$f" -o /tmp/ck.pkg.tar.zst
+    bsdtar -xf /tmp/ck.pkg.tar.zst -C /tmp/ck
+    pacman-key --add /tmp/ck/usr/share/pacman/keyrings/cachyos.gpg
     pacman-key --lsign-key "$CACHY_KEY"
 }
+
 
 # Hardcoded mirrorlists (no mirror ranking). <root> is '' for the live system, /mnt for the new one.
 # Quoted heredocs: $repo and $arch must stay literal, pacman expands them.
