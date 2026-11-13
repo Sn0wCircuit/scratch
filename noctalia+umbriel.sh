@@ -25,7 +25,7 @@ sudo systemctl enable nvidia-powerd.service
 sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
 
 # Install Noctalia+Umbriel
-sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty bluez bluez-utils wl-clipboard
+sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi bluez bluez-utils wl-clipboard
 mkdir -p ~/.config/umbriel
 cp /usr/share/umbriel/config.toml ~/.config/umbriel/config.toml
 sed -i \
@@ -112,7 +112,32 @@ curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/S
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
-curl -fL -o ~/.bashrc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/.bashrc
+cat > ~/.bashrc << EOF
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+PS1='󰣇 \[\e[90m\]\w\[\e[0m\] ❯ '
+
+HISTCONTROL=ignoreboth
+
+function y() {
+	local tmp cwd; tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd" || builtin true
+	command rm -f -- "$tmp"
+}
+
+export EDITOR=micro
+fastfetch
+
+EOF
 
 # ssh access
 # mkdir -p ~/.ssh
