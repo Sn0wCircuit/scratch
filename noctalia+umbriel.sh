@@ -140,6 +140,11 @@ fastfetch
 
 EOF
 
+# kitty config
+mkdir -p ~/.config/kitty/themes
+curl -fLo ~/.config/kitty/themes/ayu-dark.conf https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-dark.conf
+echo 'include themes/ayu-dark.conf' > ~/.config/kitty/kitty.conf
+
 # micro config
 mkdir -p ~/.config/micro/colorschemes
 curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-mirage.micro
