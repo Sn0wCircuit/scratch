@@ -34,12 +34,9 @@ sed -i \
   -e 's|^# scale = .*|scale = 1.25|' \
   -e 's|^# color_profile = .*|color_profile = "edid"|' \
   -e 's|^# sdr_gamut = .*|sdr_gamut = "srgb"|' \
+  -e '/noctalia msg screenshot-\(region\|fullscreen\)/d' \
+  -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-fullscreen"' \
   ~/.config/umbriel/config.toml
-sed -i -e '/noctalia msg screenshot-region/d' -e '/noctalia msg screenshot-fullscreen/d' ~/.config/umbriel/config.toml
-sed -i '/^\[keybinds\]/a\
-# Screenshot\
-"Print" = "spawn noctalia msg screenshot-region"\
-"Mod+Print" = "spawn noctalia msg screenshot-fullscreen"' ~/.config/umbriel/config.toml
 sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
 sudo systemctl enable greetd
 
