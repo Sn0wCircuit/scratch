@@ -94,7 +94,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now aria2.service
 
 # System Services
-sudo systemctl enable bluetooth systemd-boot-update greetd
+sudo systemctl enable systemd-boot-update greetd
 
 # easyeffects preset
 mkdir -p ~/.local/share/easyeffects/output
