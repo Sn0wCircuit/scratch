@@ -113,7 +113,7 @@ curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/S
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
-cat > ~/.bashrc << EOF
+cat > ~/.bashrc <<'EOF'
 #
 # ~/.bashrc
 #
