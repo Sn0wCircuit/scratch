@@ -72,6 +72,7 @@ Restart=on-failure
 WantedBy=default.target
 EOF
 mkdir -p ~/.config/aria2
+mkdir -p ~/Downloads
 cat > ~/.config/aria2/aria2.conf << EOF
 dir=${HOME}/Downloads/
 input-file=${HOME}/.config/aria2/aria2.session
@@ -138,6 +139,11 @@ export EDITOR=micro
 fastfetch
 
 EOF
+
+# micro config
+mkdir -p ~/.config/micro/colorschemes
+curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-mirage.micro
+# on micro, Ctrl+E > set colorscheme ayu-mirage.micro
 
 # ssh access
 # mkdir -p ~/.ssh
