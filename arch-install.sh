@@ -487,4 +487,8 @@ cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
 cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/
 echo "FONT=ter-122b" > /mnt/etc/vconsole.conf
 umount -R /mnt
-echo "Done! Reboot: sudo systemctl reboot"
+echo "Succesfully Installed Base ArchLinux!"
+read -rp "Reboot? [Y/n]: " REBOOT
+if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
+    sudo systemctl reboot
+fi
