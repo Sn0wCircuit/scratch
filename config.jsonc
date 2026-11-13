@@ -1,82 +1,90 @@
 {
-  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-  "logo": {
-    "source": "~/.config/fastfetch/logo.txt",
-    "padding": {
-      "top": 2
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "source": "~/.config/fastfetch/logo.txt",
+        "padding": {
+            "top": 2
+        },
+        "color": {
+            "1": "#59c2ff"
+        }
     },
-    "color": {
-      "1": "blue"
-    }
-  },
-  "display": {
-    "separator": " ",
-    "color": {
-      "keys": "blue"
-    }
-  },
-  "modules": [
-    {
-      "type": "title",
-      "key": "󰀄 user    ",
-      "format": "{user-name}"
+    "display": {
+        "separator": " ",
+        "color": {
+            "keys": "38;2;90;102;115"
+        }
     },
-    {
-      "type": "title",
-      "key": "󰇅 hname   ",
-      "format": "{host-name}"
-    },
-    {
-      "type": "command",
-      "key": "󰔟 os age  ",
-      "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); if [ $d -ge 365 ]; then n=$((d/365)); u=year; elif [ $d -ge 30 ]; then n=$((d/30)); u=month; else n=$d; u=day; fi; [ $n -eq 1 ] || u=${u}s; echo $n $u"
-    },
-    {
-      "type": "os",
-      "key": "󰣇 distro  "
-    },
-    {
-      "type": "kernel",
-      "key": "󰌽 kernel  "
-    },
-    {
-      "type": "de",
-      "key": "󰇄 desktop "
-    },
-    {
-      "type": "terminal",
-      "key": "󰆍 term    "
-    },
-    {
-      "type": "shell",
-      "key": "󰞷 shell   "
-    },
-    {
-      "type": "cpu",
-      "key": "󰻠 cpu     "
-    },
-    {
-      "type": "gpu",
-      "key": "󰢮 gpu     ",
-      "hideType": "integrated",
-      "format": "{vendor} {name}"
-    },
-    {
-      "type": "disk",
-      "key": "󰉉 disk    ",
-      "folders": "/"
-    },
-    {
-      "type": "memory",
-      "key": "󰍛 memory  "
-    },
-    {
-      "type": "swap",
-      "key": "󰓡 swap    "
-    },
-    {
-      "type": "packages",
-      "key": "󰏖 pkgs    "
-    }
-  ]
+    "modules": [
+        {
+            "key": "╭───────────╮",
+            "type": "custom"
+        },
+        {
+            "key": "│ {#31} user    {#keys}│",
+            "type": "title",
+            "format": "{user-name}"
+        },
+        {
+            "key": "│ {#32}󰇅 hname   {#keys}│",
+            "type": "title",
+            "format": "{host-name}"
+        },
+        {
+            "key": "│ {#33}󰔟 os age  {#keys}│",
+            "type": "command",
+            "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); if [ $d -ge 365 ]; then echo \"$((d/365))y $(((d%365)/30))m\"; elif [ $d -ge 30 ]; then echo \"$((d/30))m $((d%30))d\"; else echo \"${d}d\"; fi"
+        },
+        {
+            "key": "│ {#34}{icon} distro  {#keys}│",
+            "type": "os"
+        },
+        {
+            "key": "│ {#35} kernel  {#keys}│",
+            "type": "kernel"
+        },
+        {
+            "key": "│ {#36}󰇄 desktop {#keys}│",
+            "type": "de"
+        },
+        {
+            "key": "│ {#31} term    {#keys}│",
+            "type": "terminal"
+        },
+        {
+            "key": "│ {#32} shell   {#keys}│",
+            "type": "shell"
+        },
+        {
+            "key": "│ {#33}󰍛 cpu     {#keys}│",
+            "type": "cpu",
+            "showPeCoreCount": true
+        },
+        {
+            "key": "│ {#34}󰉉 disk    {#keys}│",
+            "type": "disk",
+            "folders": "/"
+        },
+        {
+            "key": "│ {#35}󰘚 memory  {#keys}│",
+            "type": "memory"
+        },
+        {
+            "key": "│ {#36}󰏖 pkgs    {#keys}│",
+            "type": "packages"
+        },
+        {
+            "key": "├───────────┤",
+            "type": "custom"
+        },
+        {
+            "key": "│ {#39} colors  {#keys}│",
+            "type": "colors",
+            "symbol": "circle"
+        },
+        {
+            "key": "╰───────────╯",
+            "type": "custom"
+        }
+    ]
 }
