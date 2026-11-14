@@ -25,7 +25,7 @@ sudo systemctl enable nvidia-powerd.service
 sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
 
 # Install Noctalia+Umbriel
-sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi bluez bluez-utils wl-clipboard
+sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi bluez bluez-utils wl-clipboard upower
 mkdir -p ~/.config/umbriel
 cp /usr/share/umbriel/config.toml ~/.config/umbriel/config.toml
 sed -i \
@@ -47,7 +47,7 @@ else
 fi
 
 sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
-sudo systemctl enable greetd
+sudo systemctl enable greetd upower
 
 # Enable User Audio Services
 systemctl --user enable pipewire pipewire-pulse wireplumber
