@@ -37,6 +37,15 @@ sed -i \
   -e '/noctalia msg screenshot-\(region\|fullscreen\)/d' \
   -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-fullscreen"' \
   ~/.config/umbriel/config.toml
+if grep -q '^\[environment\]' ~/.config/umbriel/config.toml; then
+  sed -i \
+    -e '/^\[environment\]/,/^\[/{/^[[:space:]]*\(EDITOR\|VISUAL\)[[:space:]]*=/d}' \
+    -e '/^\[environment\]/a EDITOR = "micro"\nVISUAL = "micro"' \
+    ~/.config/umbriel/config.toml
+else
+  printf '\n[environment]\nEDITOR = "micro"\nVISUAL = "micro"\n' >> ~/.config/umbriel/config.toml
+fi
+
 sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
 sudo systemctl enable greetd
 
