@@ -120,7 +120,7 @@ echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags
 # fastfetch config
 mkdir -p ~/.config/fastfetch
 curl -fL -o ~/.config/fastfetch/logo.txt https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/logo.txt
-curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/config.jsonc
+curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/config.jsonc
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
@@ -153,14 +153,23 @@ EOF
 
 # kitty config
 mkdir -p ~/.config/kitty/themes
-curl -fLo ~/.config/kitty/themes/ayu-dark.conf https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-dark.conf
+curl -fLo ~/.config/kitty/themes/ayu-dark.conf https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/ayu-dark.conf
 echo 'include themes/ayu-dark.conf' > ~/.config/kitty/kitty.conf
 
 # micro config
 mkdir -p ~/.config/micro/colorschemes
-curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-mirage.micro
+curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/ayu-mirage.micro
 # on micro, Ctrl+E > set colorscheme ayu-mirage.micro
 # 'sudo micro <file>' doesn't follow the colorscheme by default, use 'sudoedit <file>' instead
+
+# yazi config
+mkdir -p ~/.config/yazi/flavors/ayu-dark.yazi
+curl -fLo ~/.config/yazi/flavors/ayu-dark.yazi/flavor.toml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/flavor.toml
+curl -fLo ~/.config/yazi/flavors/ayu-dark.yazi/tmtheme.xml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/tmtheme.xml
+cat > ~/.config/yazi/theme.toml <<'EOF'
+[flavor]
+dark = "ayu-dark"
+EOF
 
 # ssh access
 # mkdir -p ~/.ssh
@@ -188,7 +197,6 @@ warp-cli --accept-tos mode warp+doh
 # Fix “Limited Connectivity”
 warp-cli --accept-tos tunnel ip add 95.216.195.133
 
-echo 'lost+found' > /mnt/data/.hidden
 echo "Done!"
 read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
