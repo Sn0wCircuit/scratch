@@ -34,8 +34,8 @@ sed -i \
   -e 's|^# scale = .*|scale = 1.25|' \
   -e 's|^# color_profile = .*|color_profile = "edid"|' \
   -e 's|^# sdr_gamut = .*|sdr_gamut = "srgb"|' \
-  -e '/noctalia msg screenshot-\(region\|fullscreen\)/d' \
-  -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-fullscreen"' \
+  -e '/noctalia msg screenshot-\(region\|window\|fullscreen\)/d' \
+  -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-window"\n"Ctrl+Print" = "spawn noctalia msg screenshot-fullscreen"' \
   ~/.config/umbriel/config.toml
 if grep -q '^\[environment\]' ~/.config/umbriel/config.toml; then
   sed -i \
