@@ -25,7 +25,7 @@ sudo systemctl enable nvidia-powerd.service
 sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
 
 # Install Noctalia+Umbriel
-sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi bluez bluez-utils wl-clipboard upower
+sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi 7zip bluez bluez-utils wl-clipboard upower
 mkdir -p ~/.config/umbriel
 cp /usr/share/umbriel/config.toml ~/.config/umbriel/config.toml
 sed -i \
