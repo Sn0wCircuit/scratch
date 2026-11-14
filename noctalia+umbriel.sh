@@ -160,6 +160,7 @@ echo 'include themes/ayu-dark.conf' > ~/.config/kitty/kitty.conf
 mkdir -p ~/.config/micro/colorschemes
 curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/ayu-mirage.micro
 # on micro, Ctrl+E > set colorscheme ayu-mirage.micro
+# 'sudo micro <file>' doesn't follow the colorscheme by default, use 'sudoedit <file>' instead
 
 # ssh access
 # mkdir -p ~/.ssh
