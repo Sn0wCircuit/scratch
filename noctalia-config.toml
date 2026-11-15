@@ -5,8 +5,11 @@ source = "community"
     [theme.templates]
     builtin_ids = [ "umbriel" ]
     
-[wallpaper.default]
-path = "~/Wallpapers/lab.jpg"
+[wallpaper]
+directory = "~/Wallpapers"
+
+    [wallpaper.default]
+    path = "~/Wallpapers/lab.jpg"
 
 [shell]
 font_family = "JetBrainsMono Nerd Font"
