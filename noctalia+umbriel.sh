@@ -17,7 +17,7 @@ sudo tee /etc/modprobe.d/nvidia.conf >/dev/null <<'EOF'
 options nvidia_drm modeset=1
 options nvidia NVreg_EnableGpuFirmware=0 NVreg_DynamicPowerManagement=0x02
 EOF
-sudo curl -fL -o /usr/lib/udev/rules.d/80-nvidia-pm.rules https://gitlab.com/asus-linux/nvidia-laptop-power-cfg/-/raw/main/nvidia.rules?inline=false
+sudo curl -fLo /usr/lib/udev/rules.d/80-nvidia-pm.rules https://gitlab.com/asus-linux/nvidia-laptop-power-cfg/-/raw/main/nvidia.rules?inline=false
 sudo systemctl enable nvidia-powerd.service
 
 # Fonts & Audio
@@ -130,16 +130,16 @@ sudo systemctl enable bluetooth systemd-boot-update
 
 # easyeffects preset
 mkdir -p ~/.local/share/easyeffects/output
-curl -fL -o ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/DTS-Built-In-Speaker.json
-curl -fL -o ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
+curl -fLo ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/DTS-Built-In-Speaker.json
+curl -fLo ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
 
 # brave command line flags
 echo '--disable-features=WaylandWpColorManagerV1' > ~/.config/brave-origin-flags.conf
 
 # fastfetch config
 mkdir -p ~/.config/fastfetch
-curl -fL -o ~/.config/fastfetch/logo.txt https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/logo.txt
-curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/config.jsonc
+curl -fLo ~/.config/fastfetch/logo.txt https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/logo.txt
+curl -fLo ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/config.jsonc
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
@@ -208,6 +208,14 @@ prepend_rules = [
 ]
 
 EOF
+
+# swayimg config
+mkdir -p ~/.config/swayimg
+cat > ~/.config/swayimg/init.lua <<'EOF'
+swayimg.viewer.on_key("Left", function() swayimg.viewer.open("prev") end)
+swayimg.viewer.on_key("Right", function() swayimg.viewer.open("next") end)
+EOF
+
 # ssh access
 # mkdir -p ~/.ssh
 # cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
