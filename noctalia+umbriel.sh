@@ -115,7 +115,7 @@ curl -fL -o ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://
 curl -fL -o ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
 
 # brave command line flags
-echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
+echo '--disable-features=WaylandWpColorManagerV1' > ~/.config/brave-origin-flags.conf
 
 # fastfetch config
 mkdir -p ~/.config/fastfetch
@@ -154,7 +154,7 @@ EOF
 # kitty config
 mkdir -p ~/.config/kitty/themes
 curl -fLo ~/.config/kitty/themes/catppuccin-mocha.conf https://raw.githubusercontent.com/catppuccin/kitty/refs/heads/main/themes/mocha.conf
-echo "include themes/catppuccin-mocha.conf" > ~/.config/kitty/kitty.conf
+echo 'include themes/catppuccin-mocha.conf' > ~/.config/kitty/kitty.conf
 
 # micro config
 mkdir -p ~/.config/micro/colorschemes
@@ -170,7 +170,10 @@ cat > ~/.config/yazi/theme.toml <<'EOF'
 [flavor]
 dark = "catppuccin-mocha"
 EOF
-
+cat > ~/.config/yazi/yazi.toml <<'EOF'
+[mgr]
+show_hidden = true
+EOF
 # ssh access
 # mkdir -p ~/.ssh
 # cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
