@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Stop script on first error
 set -e
 
 # nmcli device wifi connect "" password ""
@@ -24,7 +23,7 @@ sudo systemctl enable nvidia-powerd.service
 # Fonts & Audio
 sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
 
-# Install Noctalia+Umbriel
+# Install & Configure Noctalia+Umbriel
 sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi 7zip bluez bluez-utils wl-clipboard upower
 mkdir -p ~/.config/umbriel
 cp /usr/share/umbriel/config.toml ~/.config/umbriel/config.toml
@@ -63,9 +62,6 @@ sudo pacman -S --needed --noconfirm brave-origin-bin easyeffects lsp-plugins-lv2
 # mpv Configuration
 mkdir -p ~/.config/mpv
 cat > ~/.config/mpv/mpv.conf <<'EOF'
-# Window
-autofit=50%x50%
-
 # Audio and subtitles
 alang=eng,en
 slang=eng,en
@@ -101,7 +97,7 @@ file-allocation=falloc
 async-dns=false
 continue=true
 enable-rpc=true
-rpc-secret=dina
+rpc-secret=$ (openssl rand -hex 16)
 quiet=true
 log=${HOME}/.config/aria2/aria2.log
 log-level=warn
@@ -210,9 +206,3 @@ read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
     sudo systemctl reboot
 fi
-
-# AFTER LOGIN
-#1d99f3
-# aiostreams app
-# curl -fLo ~/Downloads/aiostreams-desktop-linux-x64.flatpak https://github.com/Viren070/AIOStreams/releases/download/desktop/aiostreams-desktop-linux-x64.flatpak
-# flatpak install --user ~/Downloads/aiostreams-desktop-linux-x64.flatpak -y
