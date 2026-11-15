@@ -1,0 +1,63 @@
+[theme]
+community_palette = "Catppuccin Mocha Blue"
+source = "community"
+
+    [theme.templates]
+    builtin_ids = [ "umbriel" ]
+    
+[wallpaper.default]
+path = "~/Wallpapers/lab.jpg"
+
+[shell]
+font_family = "JetBrainsMono Nerd Font"
+
+    [shell.launcher]
+    categories = false
+    layout = "simple"
+
+[system.monitor]
+cpu_poll_seconds = 1.0
+memory_poll_seconds = 1.0
+network_poll_seconds = 1.0
+
+[bar.default]
+margin_ends = 0
+position = "left"
+start = ["wallpaper", "cpu-temp", "mem", "net-up", "net-down"]
+center = ["clock"]
+end    = ["tray", "clipboard", "notifications", "media", "volume", "network", "bluetooth", "battery", "control-center", "session"]
+
+[widget.control-center]
+custom_image = "/usr/share/pixmaps/archlinux-logo.svg"
+custom_image_colorize = true
+
+[widget.clock]
+type   = "clock"
+format = "{:%-I:%M}"
+
+[widget.media]
+hide_when_no_media = true
+
+[widget.notifications]
+hide_when_no_unread = true
+
+[widget.battery]
+hide_when_plugged = true
+
+[widget.cpu-temp]
+type = "sysmon"
+stat = "cpu_temp"
+
+[widget.mem]
+type = "sysmon"
+stat = "ram_pct"
+
+[widget.net-down]
+type = "sysmon"
+stat = "net_rx"
+network_speed_compact = true
+
+[widget.net-up]
+type = "sysmon"
+stat = "net_tx"
+network_speed_compact = true
