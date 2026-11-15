@@ -135,6 +135,7 @@ cat > ~/.bashrc <<'EOF'
 
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
+[ "$TERM" = "xterm-kitty" ] && alias ssh='kitten ssh'
 PS1='󰣇 \w ❯ '
 
 HISTCONTROL=ignoreboth
