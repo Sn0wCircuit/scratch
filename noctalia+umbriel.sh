@@ -153,22 +153,22 @@ EOF
 
 # kitty config
 mkdir -p ~/.config/kitty/themes
-curl -fLo ~/.config/kitty/themes/ayu-dark.conf https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/ayu-dark.conf
-echo 'include themes/ayu-dark.conf' > ~/.config/kitty/kitty.conf
+curl -fLo ~/.config/kitty/themes/catppuccin-mocha.conf https://raw.githubusercontent.com/catppuccin/kitty/refs/heads/main/themes/mocha.conf
+echo "include themes/catppuccin-mocha.conf" > ~/.config/kitty/kitty.conf
 
 # micro config
 mkdir -p ~/.config/micro/colorschemes
-curl -fLo ~/.config/micro/colorschemes/ayu-mirage.micro https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/ayu-mirage.micro
-# on micro, Ctrl+E > set colorscheme ayu-mirage.micro
+curl -fLo ~/.config/micro/colorschemes/catppuccin-mocha.micro https://raw.githubusercontent.com/catppuccin/micro/refs/heads/main/themes/catppuccin-mocha.micro
+# on micro, Ctrl+E > set colorscheme catppuccin-mocha
 # 'sudo micro <file>' doesn't follow the colorscheme by default, use 'sudoedit <file>' instead
 
 # yazi config
-mkdir -p ~/.config/yazi/flavors/ayu-dark.yazi
-curl -fLo ~/.config/yazi/flavors/ayu-dark.yazi/flavor.toml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/flavor.toml
-curl -fLo ~/.config/yazi/flavors/ayu-dark.yazi/tmtheme.xml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/tmtheme.xml
+mkdir -p ~/.config/yazi/flavors/catppuccin-mocha.yazi
+curl -fLo ~/.config/yazi/flavors/catppuccin-mocha.yazi/flavor.toml https://raw.githubusercontent.com/yazi-rs/flavors/refs/heads/main/catppuccin-mocha.yazi/flavor.toml
+curl -fLo ~/.config/yazi/flavors/catppuccin-mocha.yazi/tmtheme.xml https://raw.githubusercontent.com/yazi-rs/flavors/refs/heads/main/catppuccin-mocha.yazi/tmtheme.xml
 cat > ~/.config/yazi/theme.toml <<'EOF'
 [flavor]
-dark = "ayu-dark"
+dark = "catppuccin-mocha"
 EOF
 
 # ssh access
