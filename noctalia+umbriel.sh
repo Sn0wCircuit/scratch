@@ -139,7 +139,7 @@ cat > ~/.bashrc <<'EOF'
 
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
-PS1='\[\e[38;2;115;208;255m\]󰣇 \[\e[38;2;110;124;143m\]\w \[\e[38;2;255;205;102m\]❯\[\e[0m\] '
+PS1='󰣇 \w ❯ '
 
 HISTCONTROL=ignoreboth
 
