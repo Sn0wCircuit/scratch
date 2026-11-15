@@ -46,6 +46,11 @@ else
   printf '\n[environment]\nEDITOR = "micro"\nVISUAL = "micro"\n' >> ~/.config/umbriel/config.toml
 fi
 
+mkdir -p ~/.config/noctalia
+mkdir -p ~/Wallpapers
+curl -fLo ~/Wallpapers/lab.jpg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/lab.jpg
+curl -fLo ~/.config/noctalia/config.toml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia-config.toml
+
 sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
 sudo systemctl enable greetd upower
 
