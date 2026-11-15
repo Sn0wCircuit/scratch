@@ -68,6 +68,24 @@ slang=eng,en
 volume=100
 volume-max=130
 sub-bold=yes
+
+# Catppuccin-Mocha-Blue Theme Configuration
+# Main mpv options
+background-color='#1e1e2e'
+osd-back-color='#11111b'
+osd-border-color='#11111b'
+osd-color='#cdd6f4'
+osd-shadow-color='#1e1e2e'
+
+# Stats script options
+# Options are on separate lines for clarity
+# Colors are in #BBGGRR format
+script-opts-append=stats-border_color=251818
+script-opts-append=stats-font_color=f4d6cd
+script-opts-append=stats-plot_bg_border_color=fab489
+script-opts-append=stats-plot_bg_color=251818
+script-opts-append=stats-plot_color=fab489
+
 EOF
 
 # aria2 config
@@ -175,6 +193,20 @@ EOF
 cat > ~/.config/yazi/yazi.toml <<'EOF'
 [mgr]
 show_hidden = true
+
+[opener]
+play = [
+	{ run = "mpv %s", orphan = true, for = "unix" },
+]
+image = [
+	{ run = "swayimg %s", orphan = true, desc = "swayimg", for = "unix" },
+]
+
+[open]
+prepend_rules = [
+	{ mime = "image/*", use = "image" },
+]
+
 EOF
 # ssh access
 # mkdir -p ~/.ssh
