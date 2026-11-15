@@ -121,7 +121,7 @@ echo '--disable-features=WaylandWpColorManagerV1' > ~/.config/brave-origin-flags
 # fastfetch config
 mkdir -p ~/.config/fastfetch
 curl -fL -o ~/.config/fastfetch/logo.txt https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/logo.txt
-curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia_umbriel/config.jsonc
+curl -fL -o ~/.config/fastfetch/config.jsonc https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/config.jsonc
 
 # bashrc
 mv ~/.bashrc ~/.bashrc.bak
