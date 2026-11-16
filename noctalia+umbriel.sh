@@ -65,13 +65,19 @@ cat > ~/.config/mpv/mpv.conf <<'EOF'
 # Audio and subtitles
 alang=eng,en
 slang=eng,en
-volume=100
+volume=60
 volume-max=130
-sub-bold=yes
+sub-bold=no
+
+# Network streaming cache
+cache=yes
+cache-secs=600
+demuxer-readahead-secs=600
+demuxer-max-bytes=1500MiB
 
 # Catppuccin-Mocha-Blue Theme Configuration
 # Main mpv options
-background-color='#1e1e2e'
+background-color='#000000'
 osd-back-color='#11111b'
 osd-border-color='#11111b'
 osd-color='#cdd6f4'
@@ -87,6 +93,40 @@ script-opts-append=stats-plot_bg_color=251818
 script-opts-append=stats-plot_color=fab489
 
 EOF
+
+# configure mpv://
+mkdir -p ~/.local/bin ~/.local/share/applications
+
+cat > ~/.local/bin/mpv-url-handler <<'EOF'
+#!/usr/bin/env bash
+dec() { local s="${1//\\/\\\\}"; printf '%b' "${s//%/\\x}"; }
+
+url=""
+subs=()
+IFS='&' read -ra parts <<< "${1#*\?}"
+
+for p in "${parts[@]}"; do
+  case "$p" in
+    url=*) url="$(dec "${p#url=}")" ;;
+    sub=*) subs+=("--sub-file=$(dec "${p#sub=}")") ;;
+  esac
+done
+
+exec mpv "${subs[@]}" -- "$url"
+EOF
+chmod +x ~/.local/bin/mpv-url-handler
+
+cat > ~/.local/share/applications/mpv-url-handler.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=mpv URL Handler
+Exec=$HOME/.local/bin/mpv-url-handler %u
+NoDisplay=true
+MimeType=x-scheme-handler/mpv;
+EOF
+
+update-desktop-database ~/.local/share/applications
+xdg-mime default mpv-url-handler.desktop x-scheme-handler/mpv
 
 # aria2 config
 mkdir -p ~/.config/systemd/user
