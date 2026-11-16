@@ -28,7 +28,7 @@ sudo pacman -S --needed --noconfirm umbriel noctalia noctalia-greeter kitty yazi
 mkdir -p ~/.config/umbriel
 cp /usr/share/umbriel/config.toml ~/.config/umbriel/config.toml
 sed -i \
-  -e 's|^# autostart = .*|autostart = ["noctalia"]|' \
+  -e 's|^# autostart = .*|autostart = ["noctalia"]\nshow_cheatsheet = false|' \
   -e 's|^# \[output\.DP-1\]|[output.eDP-1]|' \
   -e 's|^# scale = .*|scale = 1.25|' \
   -e 's|^# color_profile = .*|color_profile = "edid"|' \
