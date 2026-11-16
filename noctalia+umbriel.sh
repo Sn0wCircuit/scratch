@@ -46,8 +46,8 @@ else
 fi
 
 mkdir -p ~/.config/noctalia
-mkdir -p ~/Wallpapers
-curl -fLo ~/Wallpapers/lab.jpg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/lab.jpg
+mkdir -p ~/Pictures/Wallpapers ~/Documents
+curl -fLo ~/Pictures/Wallpapers/lab.jpg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/lab.jpg
 curl -fLo ~/.config/noctalia/config.toml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia-config.toml
 
 sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
@@ -86,7 +86,6 @@ EOF
 
 # configure mpv://
 mkdir -p ~/.local/bin ~/.local/share/applications
-
 cat > ~/.local/bin/mpv-url-handler <<'EOF'
 #!/usr/bin/env bash
 dec() { local s="${1//\\/\\\\}"; printf '%b' "${s//%/\\x}"; }
@@ -105,7 +104,6 @@ done
 exec mpv "${subs[@]}" -- "$url"
 EOF
 chmod +x ~/.local/bin/mpv-url-handler
-
 cat > ~/.local/share/applications/mpv-url-handler.desktop <<EOF
 [Desktop Entry]
 Type=Application
@@ -114,7 +112,6 @@ Exec=$HOME/.local/bin/mpv-url-handler %u
 NoDisplay=true
 MimeType=x-scheme-handler/mpv;
 EOF
-
 update-desktop-database ~/.local/share/applications
 xdg-mime default mpv-url-handler.desktop x-scheme-handler/mpv
 
