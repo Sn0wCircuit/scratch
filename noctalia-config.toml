@@ -17,6 +17,7 @@ font_family = "JetBrainsMono Nerd Font"
     [shell.launcher]
     categories = false
     layout = "simple"
+    colorize_icons = true
 
 [system.monitor]
 cpu_poll_seconds = 1.0
