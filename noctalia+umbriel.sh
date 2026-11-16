@@ -224,6 +224,7 @@ EOF
 cat > ~/.config/yazi/yazi.toml <<'EOF'
 [mgr]
 show_hidden = true
+ratio = [2, 3, 3]
 
 [opener]
 play = [
