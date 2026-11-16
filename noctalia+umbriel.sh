@@ -240,6 +240,12 @@ prepend_rules = [
 ]
 
 EOF
+cat > ~/.config/yazi/keymap.toml <<'EOF'
+[mgr]
+prepend_keymap = [
+  { on = ["g", "m"], run = "cd /mnt/data", desc = "Data" },
+]
+EOF
 
 # swayimg config
 mkdir -p ~/.config/swayimg
