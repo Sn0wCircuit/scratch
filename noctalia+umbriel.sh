@@ -243,6 +243,13 @@ swayimg.viewer.on_key("Left", function() swayimg.viewer.open("prev") end)
 swayimg.viewer.on_key("Right", function() swayimg.viewer.open("next") end)
 EOF
 
+# gtk3 dark mode fix
+mkdir -p ~/.config/gtk-3.0
+cat > ~/.config/gtk-3.0/settings.ini <<'EOF'
+[Settings]
+gtk-application-prefer-dark-theme=1
+EOF
+
 # ssh access
 # mkdir -p ~/.ssh
 # cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
