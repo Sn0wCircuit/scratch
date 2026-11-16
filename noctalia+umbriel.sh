@@ -201,7 +201,11 @@ EOF
 # kitty config
 mkdir -p ~/.config/kitty/themes
 curl -fLo ~/.config/kitty/themes/catppuccin-mocha.conf https://raw.githubusercontent.com/catppuccin/kitty/refs/heads/main/themes/mocha.conf
-echo 'include themes/catppuccin-mocha.conf' > ~/.config/kitty/kitty.conf
+cat > ~/.config/kitty/kitty.conf <<'EOF'
+include themes/catppuccin-mocha.conf
+font_family JetBrainsMono Nerd Font
+
+EOF
 
 # micro config
 mkdir -p ~/.config/micro/colorschemes
