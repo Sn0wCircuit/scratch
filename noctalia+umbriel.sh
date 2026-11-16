@@ -62,35 +62,25 @@ sudo pacman -S --needed --noconfirm brave-origin-bin easyeffects lsp-plugins-lv2
 # mpv Configuration
 mkdir -p ~/.config/mpv
 cat > ~/.config/mpv/mpv.conf <<'EOF'
+# Profile
+profile=high-quality
+
+# Video output and decoding (NVIDIA)
+vo=gpu-next
+hwdec=nvdec
+
 # Audio and subtitles
 alang=eng,en
 slang=eng,en
 volume=60
 volume-max=130
-sub-bold=no
+sub-bold=yes
 
 # Network streaming cache
 cache=yes
 cache-secs=600
 demuxer-readahead-secs=600
 demuxer-max-bytes=1500MiB
-
-# Catppuccin-Mocha-Blue Theme Configuration
-# Main mpv options
-background-color='#000000'
-osd-back-color='#11111b'
-osd-border-color='#11111b'
-osd-color='#cdd6f4'
-osd-shadow-color='#1e1e2e'
-
-# Stats script options
-# Options are on separate lines for clarity
-# Colors are in #BBGGRR format
-script-opts-append=stats-border_color=251818
-script-opts-append=stats-font_color=f4d6cd
-script-opts-append=stats-plot_bg_border_color=fab489
-script-opts-append=stats-plot_bg_color=251818
-script-opts-append=stats-plot_color=fab489
 
 EOF
 
