@@ -31,6 +31,9 @@ start = ["wallpaper", "cpu-temp", "mem", "net-up", "net-down"]
 center = ["clock"]
 end    = ["tray", "clipboard", "notifications", "media", "volume", "network", "bluetooth", "battery", "control-center", "session"]
 
+[location]
+address = "Chittagong"
+
 [widget.control-center]
 custom_image = "/usr/share/pixmaps/archlinux-logo.svg"
 custom_image_colorize = true
