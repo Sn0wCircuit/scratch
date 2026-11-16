@@ -33,7 +33,7 @@
         {
             "key": "│ 󰔟 os age  │",
             "type": "command",
-            "text": "d=$(( ($(date +%s) - $(stat -c %W /)) / 86400 )); if [ $d -ge 365 ]; then echo \"$((d/365))y $(((d%365)/30))m\"; elif [ $d -ge 30 ]; then echo \"$((d/30))m $((d%30))d\"; else echo \"${d}d\"; fi"
+            "text": "s=$(( $(date +%s) - $(stat -c %W /) )); h=$((s/3600)); y=$((h/8760)); h=$((h%8760)); mo=$((h/720)); h=$((h%720)); d=$((h/24)); h=$((h%24)); out=\"\"; add() { [ \"$1\" -gt 0 ] || return 0; [ -n \"$out\" ] && out=\"$out, \"; out=\"$out$1 $2\"; [ \"$1\" -ne 1 ] && out=\"${out}s\"; return 0; }; add $y year; add $mo month; add $d day; add $h hour; echo \"${out:-0 hours}\""
         },
         {
             "key": "│ {icon} distro  │",
