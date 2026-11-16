@@ -1,9 +1,6 @@
 [theme]
 community_palette = "Catppuccin Mocha Blue"
 source = "community"
-
-    [theme.templates]
-    builtin_ids = [ "umbriel" ]
     
 [wallpaper]
 directory = "~/Pictures/Wallpapers"
