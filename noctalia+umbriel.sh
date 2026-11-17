@@ -35,6 +35,7 @@ sed -i \
   -e 's|^# sdr_gamut = .*|sdr_gamut = "srgb"|' \
   -e '/noctalia msg screenshot-\(region\|window\|fullscreen\)/d' \
   -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-window"\n"Ctrl+Print" = "spawn noctalia msg screenshot-fullscreen"' \
+  -e '/^\[keybinds\]/a # Brave and Yazi\n"Mod+B" = "spawn brave-origin"\n"Mod+Y" = "spawn kitty yazi"' \
   ~/.config/umbriel/config.toml
 printf '\n[[window_rule]]\nmatch.is_alone = true\ndefault_maximize = true\n' >> ~/.config/umbriel/config.toml
 if grep -q '^\[environment\]' ~/.config/umbriel/config.toml; then
