@@ -28,7 +28,8 @@ memory_poll_seconds = 1.0
 network_poll_seconds = 1.0
 
 [bar.default]
-margin_ends = 0
+margin_edge = 1
+margin_ends = 1
 position = "left"
 start = ["wallpaper", "cpu-temp", "mem", "net-up", "net-down"]
 center = ["clock"]
