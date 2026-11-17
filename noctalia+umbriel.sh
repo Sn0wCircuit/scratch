@@ -252,6 +252,10 @@ EOF
 # swayimg config
 mkdir -p ~/.config/swayimg
 cat > ~/.config/swayimg/init.lua <<'EOF'
+swayimg.text.visible = false
+swayimg.viewer.on_key("i", function()
+  swayimg.text.visible = not swayimg.text.visible
+end)
 swayimg.viewer.on_key("Left", function() swayimg.viewer.open("prev") end)
 swayimg.viewer.on_key("Right", function() swayimg.viewer.open("next") end)
 EOF
