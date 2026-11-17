@@ -36,6 +36,7 @@ sed -i \
   -e '/noctalia msg screenshot-\(region\|window\|fullscreen\)/d' \
   -e '/^\[keybinds\]/a # Screenshot\n"Print" = "spawn noctalia msg screenshot-region"\n"Mod+Print" = "spawn noctalia msg screenshot-window"\n"Ctrl+Print" = "spawn noctalia msg screenshot-fullscreen"' \
   ~/.config/umbriel/config.toml
+printf '\n[[window_rule]]\nmatch.is_alone = true\ndefault_maximize = true\n' >> ~/.config/umbriel/config.toml
 if grep -q '^\[environment\]' ~/.config/umbriel/config.toml; then
   sed -i \
     -e '/^\[environment\]/,/^\[/{/^[[:space:]]*\(EDITOR\|VISUAL\)[[:space:]]*=/d}' \
