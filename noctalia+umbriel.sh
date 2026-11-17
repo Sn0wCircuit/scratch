@@ -74,7 +74,7 @@ hwdec=nvdec
 # Audio and subtitles
 alang=eng,en
 slang=eng,en
-volume=60
+volume=80
 volume-max=130
 sub-bold=yes
 
