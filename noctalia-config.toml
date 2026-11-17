@@ -16,6 +16,12 @@ font_family = "JetBrainsMono Nerd Font"
     layout = "simple"
     colorize_icons = true
 
+    [shell.panel]
+    control_center_placement = "floating"
+    wallpaper_placement = "floating"
+    session_placement = "floating"
+    clipboard_position = "auto"
+
 [system.monitor]
 cpu_poll_seconds = 1.0
 memory_poll_seconds = 1.0
