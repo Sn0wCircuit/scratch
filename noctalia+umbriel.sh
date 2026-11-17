@@ -87,7 +87,7 @@ demuxer-max-bytes=1500MiB
 
 EOF
 
-# configure mpv://
+# configure mpv://?url={encodedUrl}&sub={subtitles}
 mkdir -p ~/.local/bin ~/.local/share/applications
 cat > ~/.local/bin/mpv-url-handler <<'EOF'
 #!/usr/bin/env bash
