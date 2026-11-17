@@ -32,8 +32,7 @@ end    = ["tray", "clipboard", "notifications", "media", "volume", "network", "b
 address = "Chittagong"
 
 [widget.control-center]
-custom_image = "/usr/share/pixmaps/archlinux-logo.svg"
-custom_image_colorize = true
+glyph = "layout-grid"
 
 [widget.clock]
 type   = "clock"
