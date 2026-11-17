@@ -53,7 +53,36 @@ mkdir -p ~/Pictures/Wallpapers ~/Documents
 curl -fLo ~/Pictures/Wallpapers/lab.jpg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/lab.jpg
 curl -fLo ~/.config/noctalia/config.toml https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/noctalia-config.toml
 
-sudo sed -i 's|^command = .*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
+# noctalia-greeter config
+sudo sed -i '/^\[default_session\]/,/^\[/ s|^command[[:space:]]*=.*|command = "/usr/bin/noctalia-greeter-session"|' /etc/greetd/config.toml
+sudo systemd-tmpfiles --create noctalia-greeter.conf
+sudo env GREETER_USER=greeter noctalia-greeter-apply-appearance --setup-system
+# Catppuccin-Mocha-Blue theme
+sudo tee /var/lib/noctalia-greeter/greeter.toml >/dev/null <<'EOF'
+[appearance]
+scheme = "Synced"
+theme_mode = "dark"
+
+[appearance.palette]
+primary = "#89b4fa"
+on_primary = "#11111b"
+secondary = "#fab387"
+on_secondary = "#11111b"
+tertiary = "#94e2d5"
+on_tertiary = "#11111b"
+error = "#f38ba8"
+on_error = "#11111b"
+surface = "#1e1e2e"
+on_surface = "#cdd6f4"
+surface_variant = "#313244"
+on_surface_variant = "#a3b4eb"
+outline = "#4c4f69"
+shadow = "#11111b"
+hover = "#94e2d5"
+on_hover = "#11111b"
+EOF
+sudo chown greeter:greeter /var/lib/noctalia-greeter/greeter.toml
+sudo chmod 644 /var/lib/noctalia-greeter/greeter.toml
 sudo systemctl enable greetd upower
 
 # Enable User Audio Services
