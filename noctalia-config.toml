@@ -32,7 +32,7 @@ end    = ["tray", "clipboard", "notifications", "media", "volume", "network", "b
 address = "Chittagong"
 
 [widget.control-center]
-glyph = "layout-grid"
+glyph = "adjustments"
 
 [widget.clock]
 type   = "clock"
