@@ -259,6 +259,7 @@ end)
 swayimg.gallery.on_key("i", function()
   swayimg.text.visible = not swayimg.text.visible
 end)
+swayimg.imagelist.adjacent = true
 swayimg.viewer.on_key("Left", function() swayimg.viewer.open("prev") end)
 swayimg.viewer.on_key("Right", function() swayimg.viewer.open("next") end)
 EOF
