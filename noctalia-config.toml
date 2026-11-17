@@ -31,6 +31,9 @@ end    = ["tray", "clipboard", "notifications", "media", "volume", "network", "b
 [location]
 address = "Chittagong"
 
+[weather]
+unit = "imperial"
+
 [widget.control-center]
 glyph = "adjustments"
 
