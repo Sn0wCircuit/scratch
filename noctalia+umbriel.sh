@@ -40,6 +40,7 @@ sed -i \
   -e '/^\[keybinds\]/a # Brave and Yazi\n"Mod+B" = "spawn brave-origin"\n"Mod+Y" = "spawn kitty yazi"' \
   ~/.config/umbriel/config.toml
 printf '\n[[window_rule]]\nmatch.is_alone = true\ndefault_maximize = true\n' >> ~/.config/umbriel/config.toml
+printf '\n[[window_rule]]\nmatch.app_id = "^brave-origin$"\ndefault_maximize = true\n' >> ~/.config/umbriel/config.toml
 if grep -q '^\[environment\]' ~/.config/umbriel/config.toml; then
   sed -i \
     -e '/^\[environment\]/,/^\[/{/^[[:space:]]*\(EDITOR\|VISUAL\)[[:space:]]*=/d}' \
