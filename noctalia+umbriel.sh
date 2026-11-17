@@ -61,6 +61,7 @@ sudo env GREETER_USER=greeter noctalia-greeter-apply-appearance --setup-system
 sudo tee /var/lib/noctalia-greeter/greeter.toml >/dev/null <<'EOF'
 [appearance]
 scheme = "Synced"
+hide_logo = true
 theme_mode = "dark"
 
 [appearance.palette]
