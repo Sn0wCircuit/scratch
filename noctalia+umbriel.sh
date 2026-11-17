@@ -264,7 +264,7 @@ EOF
 # cachy-update config
 mkdir -p ~/.local/share/icons/hicolor/scalable/apps ~/.config/arch-update
 curl -sL https://codeload.github.com/Antiz96/arch-update/tar.gz/main | tar -xz -C ~/.local/share/icons/hicolor/scalable/apps --wildcards --xform 's|.*/arch-|cachy-|' '*/res/icons/arch-*.svg'
-echo 'TrayIconStyle= light' > ~/.config/arch-update/arch-update.conf
+echo 'TrayIconStyle=light' > ~/.config/arch-update/arch-update.conf
 cachy-update --tray --enable
 cachy-update --check --enable
 
