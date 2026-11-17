@@ -3,6 +3,7 @@
 set -e
 
 # nmcli device wifi connect "" password ""
+n=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1; exit}'); nmcli connection modify "$n" 802-11-wireless-security.key-mgmt sae; [ "$(nmcli -g 802-11-wireless-security.key-mgmt connection show "$n")" = sae ] && printf '\e[32m✔ "%s" is set to SAE (WPA3-Personal)\e[0m\n' "$n" || printf '\e[31m✘ "%s" is NOT set to SAE\e[0m\n' "$n"
 
 sudo pacman -Syu --noconfirm
 
