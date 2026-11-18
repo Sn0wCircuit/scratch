@@ -134,7 +134,7 @@ curl -fLo ~/.local/share/easyeffects/output/DTS-Built-In-Speaker.json https://ra
 curl -fLo ~/.local/share/easyeffects/output/AirPods4-ANC.json https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/AirPods4-ANC.json
 
 # brave command line flags
-echo "--disable-features=WaylandWpColorManagerV1" > ~/.config/brave-origin-flags.conf
+echo '--disable-features=WaylandWpColorManagerV1' > ~/.config/brave-origin-flags.conf
 
 # fastfetch config
 mkdir -p ~/.config/fastfetch
