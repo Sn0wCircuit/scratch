@@ -295,6 +295,8 @@ end)
 swayimg.imagelist.adjacent = true
 swayimg.viewer.on_key("Left", function() swayimg.viewer.open("prev") end)
 swayimg.viewer.on_key("Right", function() swayimg.viewer.open("next") end)
+swayimg.text.font = "JetBrainsMono Nerd Font"
+swayimg.text.size = 18
 EOF
 
 # gtk3 dark mode fix
