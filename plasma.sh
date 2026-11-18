@@ -44,6 +44,12 @@ profile=high-quality
 vo=gpu-next
 hwdec=nvdec
 
+# Window
+autofit=50%x50%
+title=${media-title}
+#title-bar=no
+#no-border
+
 # Audio and subtitles
 alang=eng,en
 slang=eng,en
