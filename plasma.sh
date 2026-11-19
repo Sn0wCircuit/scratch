@@ -96,7 +96,6 @@ EOF
 update-desktop-database ~/.local/share/applications
 xdg-mime default mpv-url-handler.desktop x-scheme-handler/mpv
 
-
 # aria2 config
 # grep rpc-secret ~/.config/aria2/aria2.conf
 mkdir -p ~/.config/systemd/user
