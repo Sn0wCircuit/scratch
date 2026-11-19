@@ -16,10 +16,10 @@ sudo pacman -S --needed --noconfirm intel-media-driver vulkan-intel
 # Nvidia System Configs
 sudo tee /etc/modprobe.d/nvidia.conf >/dev/null <<'EOF'
 options nvidia_drm modeset=1
-options nvidia NVreg_EnableGpuFirmware=0 NVreg_DynamicPowerManagement=0x02
+options nvidia NVreg_DynamicPowerManagement=0x02
 EOF
 sudo curl -fLo /usr/lib/udev/rules.d/80-nvidia-pm.rules https://gitlab.com/asus-linux/nvidia-laptop-power-cfg/-/raw/main/nvidia.rules?inline=false
-sudo systemctl enable nvidia-powerd.service
+sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service nvidia-powerd.service
 
 # Fonts & Audio
 sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
