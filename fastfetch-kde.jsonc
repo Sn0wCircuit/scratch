@@ -1,0 +1,79 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "source": "arch_small",
+        "padding": {
+            "top": 2
+        },
+        "color": {
+            "1": "blue",
+            "2": "blue"
+        }
+    },
+    "display": {
+        "separator": " ",
+        "color": {
+            "keys": "blue"
+        }
+    },
+    "modules": [
+        {
+            "key": " user    ",
+            "type": "title",
+            "format": "{user-name}"
+        },
+        {
+            "key": "󰇅 hname   ",
+            "type": "title",
+            "format": "{host-name}"
+        },
+        {
+            "key": "󰔟 os age  ",
+            "type": "command",
+            "text": "s=$(( $(date +%s) - $(stat -c %W /) )); h=$((s/3600)); y=$((h/8760)); h=$((h%8760)); mo=$((h/720)); h=$((h%720)); d=$((h/24)); h=$((h%24)); out=\"\"; add() { [ \"$1\" -gt 0 ] || return 0; [ -n \"$out\" ] && out=\"$out, \"; out=\"$out$1 $2\"; [ \"$1\" -ne 1 ] && out=\"${out}s\"; return 0; }; add $y year; add $mo month; add $d day; add $h hour; echo \"${out:-0 hours}\""
+        },
+        {
+            "key": "{icon} distro  ",
+            "type": "os"
+        },
+        {
+            "key": " kernel  ",
+            "type": "kernel"
+        },
+        {
+            "key": "󰇄 desktop ",
+            "type": "de"
+        },
+        {
+            "key": " term    ",
+            "type": "terminal"
+        },
+        {
+            "key": " shell   ",
+            "type": "shell"
+        },
+        {
+            "key": "󰍛 cpu     ",
+            "type": "cpu",
+            "showPeCoreCount": true
+        },
+        {
+            "key": "󰉉 disk    ",
+            "type": "disk",
+            "folders": "/"
+        },
+        {
+            "key": "󰘚 memory  ",
+            "type": "memory"
+        },
+        {
+            "key": "󰏖 pkgs    ",
+            "type": "packages"
+        },
+        {
+            "key": " colors  ",
+            "type": "colors",
+            "symbol": "circle"
+        }
+    ]
+}
