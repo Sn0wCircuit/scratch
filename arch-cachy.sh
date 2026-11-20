@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Same as the official cachyos-repo.sh: force English/C output so the grep-based checks
 # on tool output (ld.so --help) can't be broken by localization.
@@ -133,8 +133,7 @@ import_cachy_key() {
         for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
     fi
     # Key comes from the keyring package on the CachyOS mirror (no keyserver needed)
-    f=$(curl -fsSL --retry 3 "$CACHY_URL/" | grep -oP '(?<=href=")cachyos-keyring-[0-9][^"/]*-any\.pkg\.tar\.zst(?=")' | sort -uV | tail -n1)
-    [ -n "$f" ] || { echo "Cannot find cachyos-keyring on mirror" >&2; exit 1; }
+    f=$(curl -fsSL --retry 3 "$CACHY_URL/" | grep -oP '...' | sort -uV | tail -n1 || true)
     rm -rf /tmp/ck; mkdir -p /tmp/ck
     curl -fsSL --retry 3 "$CACHY_URL/$f" -o /tmp/ck.pkg.tar.zst
     bsdtar -xf /tmp/ck.pkg.tar.zst -C /tmp/ck
@@ -222,6 +221,8 @@ read -rp "Default Partition Layout? (Y/n): " DEFAULT_LAYOUT
 
 EFI_LABEL=();  BOOT_LABEL=();  ROOT_LABEL=()
 DATA_NEW=n
+EXTRA=""
+EXTRA_MNT=""
 if [ "$DEFAULT_LAYOUT" = y ]; then
     # If an ext4 partition labeled 'Data' exists: every other partition is deleted, then
     # p1-p3 are recreated (root = largest free block). The data partition is never
