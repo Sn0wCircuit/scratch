@@ -133,7 +133,10 @@ import_cachy_key() {
         for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
     fi
     # Key comes from the keyring package on the CachyOS mirror (no keyserver needed)
-    f=$(curl -fsSL --retry 3 "$CACHY_URL/" | grep -oP '...' | sort -uV | tail -n1 || true)
+    f=$(curl -fsSL --retry 3 "$CACHY_URL/" \
+        | grep -oP '(?<=href=")cachyos-keyring-[0-9][^"/]*-any\.pkg\.tar\.zst(?=")' \
+        | sort -uV | tail -n1 || true)
+    [ -n "$f" ] || { echo "No cachyos-keyring package found in $CACHY_URL/" >&2; exit 1; }
     rm -rf /tmp/ck; mkdir -p /tmp/ck
     curl -fsSL --retry 3 "$CACHY_URL/$f" -o /tmp/ck.pkg.tar.zst
     bsdtar -xf /tmp/ck.pkg.tar.zst -C /tmp/ck
@@ -307,6 +310,12 @@ echo "CachyOS:  $CPU_LEVEL"
 read -rp "Proceed? (Y/n): " OK
 [[ $OK == [nN]* ]] && exit 1
 
+# --- CachyOS key + package resolution (moved up) ---
+# Network/key problems must abort BEFORE anything is modified, including the
+# UEFI boot entries removed below.
+import_cachy_key
+cachy_resolve_pkgs
+
 # --- Remove existing UEFI boot entries ---
 # Keeps entry 0000 only if the EFI partition is NOT being formatted.
 for e in $(efibootmgr | grep -oP '^Boot\K[0-9A-F]{4}'); do
@@ -322,9 +331,7 @@ tweak_pacman_conf /etc/pacman.conf
 write_arch_mirrorlist ""
 
 # --- CachyOS repos in the LIVE system ---
-# Done before formatting so a network/key problem aborts before touching disks.
-import_cachy_key
-cachy_resolve_pkgs
+# (key import and package resolution already done above, before touching anything)
 # Live ISO workaround: CachyOS's pacman fork can need a newer libcrypto than the ISO has,
 # so it is NOT installed in the live system (pacstrap still installs it into the new one).
 # Only the keyring and mirrorlists go in here; the live stock pacman gets literal
