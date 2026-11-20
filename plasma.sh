@@ -1,10 +1,17 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 # nmcli device wifi connect "" password ""
-n=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1; exit}'); nmcli connection modify "$n" 802-11-wireless-security.key-mgmt sae; [ "$(nmcli -g 802-11-wireless-security.key-mgmt connection show "$n")" = sae ] && printf '\e[32m✔ "%s" is set to SAE (WPA3-Personal)\e[0m\n' "$n" || printf '\e[31m✘ "%s" is NOT set to SAE\e[0m\n' "$n"
+n=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1; exit}')
+if [ -n "$n" ]; then
+    nmcli connection modify "$n" 802-11-wireless-security.key-mgmt sae
+    [ "$(nmcli -g 802-11-wireless-security.key-mgmt connection show "$n")" = sae ] \
+        && printf '\e[32m✔ "%s" is set to SAE (WPA3-Personal)\e[0m\n' "$n" \
+        || printf '\e[31m✘ "%s" is NOT set to SAE\e[0m\n' "$n"
+fi
 
+# Full system upgrade
 sudo pacman -Syu --noconfirm
 
 # Intel Drivers
@@ -13,9 +20,10 @@ sudo pacman -S --needed --noconfirm intel-media-driver vulkan-intel
 # Nvidia Driver
 sudo pacman -S --needed --noconfirm git linux-cachyos-nvidia-open
 # Nvidia System Config
-git clone https://gitlab.com/asus-linux/nvidia-laptop-power-cfg.git
-cd nvidia-laptop-power-cfg
-makepkg -sfi
+tmp=$(mktemp -d)
+git clone --depth 1 https://gitlab.com/asus-linux/nvidia-laptop-power-cfg.git "$tmp/cfg"
+(cd "$tmp/cfg" && makepkg -sfi --noconfirm)
+rm -rf "$tmp"
 sudo systemctl enable nvidia-suspend nvidia-resume nvidia-hibernate
 sudo systemctl enable nvidia-powerd
 
