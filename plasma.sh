@@ -182,22 +182,8 @@ mkdir -p ~/.local/share/icons/hicolor/scalable/apps
 curl -sL https://codeload.github.com/Antiz96/arch-update/tar.gz/main | tar -xz -C ~/.local/share/icons/hicolor/scalable/apps --wildcards --xform 's|.*/arch-|cachy-|' '*/res/icons/arch-*.svg'
 cachy-update --check --enable
 
-# Application Launcer icon for KDE
-cat > ~/.local/share/icons/hicolor/scalable/apps/application-launcher.svg <<'EOF'
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12.3471 0 49.3856 49.3856">
-  <style type="text/css" id="current-color-scheme">
-    .ColorScheme-Text { color: #fcfcfc; }
-  </style>
-  <defs>
-    <linearGradient id="g" x1="-9.5" y1="16.9323" x2="19.5" y2="30.9323" gradientUnits="userSpaceOnUse">
-      <stop offset="0.106991" stop-color="#C957E6"/>
-      <stop offset="1" stop-color="#1A9FFF"/>
-    </linearGradient>
-  </defs>
-  <circle class="ColorScheme-Text" cx="12.3457" cy="24.6928" r="20.2608" fill="none" stroke="currentColor" stroke-width="8.8641"/>
-  <circle cx="12.3464" cy="24.7191" r="12.3464" fill="url(#g)"/>
-</svg>
-EOF
+# Application Launcer icon for KDE (Arch)
+curl -fLo ~/.local/share/icons/hicolor/scalable/apps/arch-app-launcher.svg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/arch-app-launcher.svg
 
 # install WARP
 sudo pacman -S --needed --noconfirm cloudflare-warp-bin
