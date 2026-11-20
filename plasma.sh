@@ -7,29 +7,29 @@ n=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wirele
 
 sudo pacman -Syu --noconfirm
 
-# Install Nvidia Driver
-sudo pacman -S --needed --noconfirm linux-cachyos-nvidia-open
-
 # Intel Drivers
 sudo pacman -S --needed --noconfirm intel-media-driver vulkan-intel
 
-# Nvidia System Configs
-sudo tee /etc/modprobe.d/nvidia.conf >/dev/null <<'EOF'
-options nvidia_drm modeset=1
-options nvidia NVreg_DynamicPowerManagement=0x02
-EOF
-sudo curl -fLo /usr/lib/udev/rules.d/80-nvidia-pm.rules https://gitlab.com/asus-linux/nvidia-laptop-power-cfg/-/raw/main/nvidia.rules?inline=false
-sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service nvidia-powerd.service
+# Nvidia Driver
+sudo pacman -S --needed --noconfirm git linux-cachyos-nvidia-open
+# Nvidia System Config
+git clone https://gitlab.com/asus-linux/nvidia-laptop-power-cfg.git
+cd nvidia-laptop-power-cfg
+makepkg -sfi
+sudo systemctl enable nvidia-suspend nvidia-resume nvidia-hibernate
+sudo systemctl enable nvidia-powerd
 
-# Fonts & Audio
-sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
+# Audio
+sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewire-alsa wireplumber
+# Audio Services
+systemctl --user enable pipewire pipewire-pulse wireplumber
 
-# Install KDE Plasma
+# Fonts
+sudo pacman -S --needed --noconfirm noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-jetbrains-mono-nerd
+
+# KDE Plasma
 sudo pacman -S --needed --noconfirm plasma-meta ark dolphin gwenview konsole kate kcolorchooser tesseract-data-eng wl-clipboard
 sudo systemctl enable plasmalogin
-
-# Enable User Audio Services
-systemctl --user enable pipewire pipewire-pulse wireplumber
 
 # Applications & Tools
 sudo pacman -S --needed --noconfirm cachy-update brave-origin-bin easyeffects lsp-plugins-lv2 asusctl rog-control-center mpv aria2 fastfetch openssh sbctl
@@ -131,7 +131,7 @@ EOF
 touch ~/.config/aria2/aria2.session
 touch ~/.config/aria2/aria2.log
 systemctl --user daemon-reload
-systemctl --user enable --now aria2.service
+systemctl --user enable aria2.service
 
 # System Services
 sudo systemctl enable bluetooth systemd-boot-update
@@ -191,13 +191,6 @@ cat > ~/.local/share/icons/hicolor/scalable/apps/application-launcher.svg <<'EOF
 </svg>
 EOF
 
-# ssh access
-# mkdir -p ~/.ssh
-# cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
-# chmod 700 ~/.ssh
-# chmod 600 ~/.ssh/id_* ~/.ssh/config
-# chmod 644 ~/.ssh/*.pub
-
 # install WARP
 sudo pacman -S --needed --noconfirm cloudflare-warp-bin
 # start the daemon
@@ -222,3 +215,10 @@ read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
     sudo systemctl reboot
 fi
+
+# ssh access
+# mkdir -p ~/.ssh
+# cp -r /mnt/data/SOFTWARES/arch/.ssh/. ~/.ssh/
+# chmod 700 ~/.ssh
+# chmod 600 ~/.ssh/id_* ~/.ssh/config
+# chmod 644 ~/.ssh/*.pub
