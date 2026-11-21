@@ -33,7 +33,7 @@ sudo pacman -S --needed --noconfirm pipewire pipewire-pulse pipewire-jack pipewi
 systemctl --user enable pipewire pipewire-pulse wireplumber
 
 # Fonts
-sudo pacman -S --needed --noconfirm noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk inter-font ttf-jetbrains-mono-nerd
+sudo pacman -S --needed --noconfirm noto-fonts noto-fonts-emoji noto-fonts-extra noto-fonts-cjk ttf-nerd-fonts-symbols
 
 # KDE Plasma
 sudo pacman -S --needed --noconfirm plasma-meta ark dolphin gwenview konsole kate kcolorchooser tesseract-data-eng wl-clipboard
