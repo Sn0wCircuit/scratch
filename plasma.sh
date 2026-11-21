@@ -45,13 +45,6 @@ sudo pacman -S --needed --noconfirm cachy-update brave-origin-bin easyeffects ls
 # mpv Configuration
 mkdir -p ~/.config/mpv
 cat > ~/.config/mpv/mpv.conf <<'EOF'
-# Profile
-profile=high-quality
-
-# Video output and decoding (NVIDIA)
-vo=gpu-next
-hwdec=nvdec
-
 # Window
 autofit=50%x50%
 title=${media-title}
@@ -65,44 +58,7 @@ volume=80
 volume-max=130
 sub-bold=yes
 
-# Network streaming cache
-cache=yes
-cache-secs=600
-demuxer-readahead-secs=600
-demuxer-max-bytes=1500MiB
-
 EOF
-
-# configure mpv://?url={encodedUrl}&sub={subtitles}
-mkdir -p ~/.local/bin ~/.local/share/applications
-cat > ~/.local/bin/mpv-url-handler <<'EOF'
-#!/usr/bin/env bash
-dec() { local s="${1//\\/\\\\}"; printf '%b' "${s//%/\\x}"; }
-
-url=""
-subs=()
-IFS='&' read -ra parts <<< "${1#*\?}"
-
-for p in "${parts[@]}"; do
-  case "$p" in
-    url=*) url="$(dec "${p#url=}")" ;;
-    sub=*) subs+=("--sub-file=$(dec "${p#sub=}")") ;;
-  esac
-done
-
-exec mpv "${subs[@]}" -- "$url"
-EOF
-chmod +x ~/.local/bin/mpv-url-handler
-cat > ~/.local/share/applications/mpv-url-handler.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Name=mpv URL Handler
-Exec=$HOME/.local/bin/mpv-url-handler %u
-NoDisplay=true
-MimeType=x-scheme-handler/mpv;
-EOF
-update-desktop-database ~/.local/share/applications
-xdg-mime default mpv-url-handler.desktop x-scheme-handler/mpv
 
 # aria2 config
 # grep rpc-secret ~/.config/aria2/aria2.conf
@@ -184,6 +140,12 @@ cachy-update --check --enable
 
 # Application Launcer icon for KDE (Arch)
 curl -fLo ~/.local/share/icons/hicolor/scalable/apps/arch-app-launcher.svg https://raw.githubusercontent.com/Sn0wCircuit/scratch/refs/heads/main/arch-app-launcher.svg
+
+# AIOStreams Desktop
+tmp=$(mktemp -d)
+curl -fL https://github.com/Viren070/AIOStreams/releases/download/desktop-v0.28.0/aiostreams-desktop-bin.tar.gz | tar -xz -C "$tmp"
+(cd "$(dirname "$(find "$tmp" -name PKGBUILD -print -quit)")" && makepkg -si --noconfirm)
+rm -rf "$tmp"
 
 # install WARP
 sudo pacman -S --needed --noconfirm cloudflare-warp-bin
