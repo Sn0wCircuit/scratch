@@ -10,3 +10,15 @@ kscreen-doctor "output.eDP-1.colorProfileSource.ICC" "output.eDP-1.iccprofile.$H
 
 # Turn on numlock on startup
 kwriteconfig6 --file kcminputrc --group Keyboard --key NumLock 0
+
+# Set Display Dim to Never
+for profile in AC Battery LowBattery; do
+  kwriteconfig6 --file powerdevilrc --group "$profile" --group Display --key DimDisplayWhenIdle false
+done
+systemctl --user restart plasma-powerdevil.service
+
+echo "Done!"
+read -rp "Reboot? [Y/n]: " REBOOT
+if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
+    sudo systemctl reboot
+fi
