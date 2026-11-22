@@ -178,3 +178,5 @@ fi
 # chmod 700 ~/.ssh
 # chmod 600 ~/.ssh/id_* ~/.ssh/config
 # chmod 644 ~/.ssh/*.pub
+
+#    #202326
