@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Fractional Scaling to 125%
 kscreen-doctor output.eDP-1.scale.1.25
 
