@@ -22,5 +22,5 @@ systemctl --user restart plasma-powerdevil.service
 echo "Done!"
 read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
-    sudo systemctl reboot
+    reboot
 fi
