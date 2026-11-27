@@ -387,7 +387,7 @@ mkfs.ext4 -F "${BOOT_LABEL[@]}" "$BOOT"
 mkfs.ext4 -F "${ROOT_LABEL[@]}" "$ROOT"
 if [ "$DATA_NEW" = y ]; then mkfs.ext4 -F -L Data "$EXTRA"; fi
 mount "$ROOT" /mnt
-mount -o fmask=0177,dmask=0077 --mkdir "$EFI" /mnt/efi
+mount -o fmask=0177,dmask=0077,noexec,nosuid,nodev --mkdir "$EFI" /mnt/efi
 mount --mkdir "$BOOT" /mnt/boot
 if [ "$FORMAT_EFI" = n ]; then
     rm -rf /mnt/efi/loader/ /mnt/efi/EFI/Boot/ /mnt/efi/EFI/systemd/
