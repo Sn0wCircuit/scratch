@@ -184,7 +184,7 @@ if [ "$DEFAULT_LAYOUT" = y ]; then
     # p1-p3 are recreated (root = largest free block). The data partition is never
     # touched: if it isn't p4 it is renumbered to p4 (table entry only, no data moves).
     # If it does not exist, or it exists and you choose to wipe the entire drive anyway
-    # (default N): the WHOLE disk is wiped and p1-p4 are created
+    # (default Y): the WHOLE disk is wiped and p1-p4 are created
     # (root 200G, p4 = rest of the disk, ext4, labeled 'Data').
     DATA_NO=$(find_data_part)
     if [ -n "$DATA_NO" ]; then
@@ -436,7 +436,7 @@ cp /usr/share/refind/drivers_x64/ext4_x64.efi /mnt/efi/EFI/systemd/drivers/
 cp /usr/share/kbd/consolefonts/ter-122b.psf.gz /mnt/usr/share/kbd/consolefonts/
 echo "FONT=ter-122b" > /mnt/etc/vconsole.conf
 umount -R /mnt
-echo "Succesfully Installed Base ArchLinux!"
+echo "Successfully Installed Base ArchLinux!"
 read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
     sudo systemctl reboot
