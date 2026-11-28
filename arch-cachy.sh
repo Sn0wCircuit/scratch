@@ -188,8 +188,8 @@ if [ "$DEFAULT_LAYOUT" = y ]; then
     # (root 200G, p4 = rest of the disk, ext4, labeled 'Data').
     DATA_NO=$(find_data_part)
     if [ -n "$DATA_NO" ]; then
-        read -rp "ext4 'Data' partition found (p$DATA_NO). Wipe the ENTIRE drive anyway? (y/N): " WIPE_ALL
-        if [[ $WIPE_ALL == [yY]* ]]; then DATA_NO=; fi
+        read -rp "ext4 'Data' partition found (p$DATA_NO). Wipe the ENTIRE drive anyway? (Y/n): " WIPE_ALL
+        if [[ $WIPE_ALL != [nN]* ]]; then DATA_NO=; fi
     fi
     [ -n "$DATA_NO" ] || DATA_NEW=y
     EFI=$(part 1);  BOOT=$(part 2);  ROOT=$(part 3);  EXTRA=$(part 4)
