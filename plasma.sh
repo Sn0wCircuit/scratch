@@ -23,10 +23,29 @@ sudo pacman -S --needed --noconfirm intel-media-driver vulkan-intel
 # Nvidia Driver
 sudo pacman -S --needed --noconfirm git linux-cachyos-nvidia-open
 # Nvidia System Config
-tmp=$(mktemp -d)
-git clone --depth 1 https://gitlab.com/asus-linux/nvidia-laptop-power-cfg.git "$tmp/cfg"
-(cd "$tmp/cfg" && makepkg -sfi --noconfirm)
-rm -rf "$tmp"
+sudo tee /etc/modprobe.d/nvidia.conf >/dev/null <<'EOF'
+options nvidia_drm modeset=1
+
+options nvidia NVreg_EnableGpuFirmware=0 NVreg_EnableS0ixPowerManagement=1 NVreg_DynamicPowerManagement=0x02
+EOF
+sudo tee /usr/lib/udev/rules.d/80-nvidia-pm.rules >/dev/null <<'EOF'
+# Remove NVIDIA USB xHCI Host Controller devices, if present
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c0330", ATTR{remove}="1"
+
+# Remove NVIDIA USB Type-C UCSI devices, if present
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c8000", ATTR{remove}="1"
+
+# Remove NVIDIA Audio devices, if present
+#ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x040300", ATTR{remove}="1"
+
+# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind
+ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"
+ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"
+
+# Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind
+ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"
+ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"
+EOF
 sudo systemctl enable nvidia-suspend nvidia-resume nvidia-hibernate
 sudo systemctl enable nvidia-powerd
 
