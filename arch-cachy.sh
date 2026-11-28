@@ -431,5 +431,5 @@ umount -R /mnt
 echo "Successfully Installed Base ArchLinux!"
 read -rp "Reboot? [Y/n]: " REBOOT
 if [[ -z $REBOOT || $REBOOT == [yY]* ]]; then
-    sudo systemctl reboot
+    systemctl reboot
 fi
