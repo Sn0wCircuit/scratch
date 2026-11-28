@@ -3,7 +3,7 @@ set -euo pipefail
 
 timedatectl set-ntp true
 
-# --- CachyOS repo settings (taken from CachyOS's official cachyos-repo.sh) ---
+# --- CachyOS repo settings (taken from CachyOS's official Wiki) ---
 # If a download 404s one day, bump these to the versions listed on
 # https://wiki.cachyos.org/features/optimized_repos/
 CACHY_KEY=F3B607488DB35A47
@@ -116,8 +116,8 @@ Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch
 Server = http://mirror.rackspace.com/archlinux/$repo/os/$arch
 ARCH_MIRRORS
 }
-# cachyos-mirrorlist: limda first, then CachyOS's own global tier-1 CDNs as fallback; pacman
-# tries the servers top to bottom. The v3/v4 lists are derived from it exactly like the
+# cachyos-mirrorlist
+# pacman tries the servers top to bottom. The v3/v4 lists are derived from it exactly like the
 # official cachyos-rate-mirrors does (/$arch/ -> /$arch_v3/ and /$arch_v4/, variables provided
 # by CachyOS's pacman fork), so all three always match.
 write_cachyos_mirrorlist() {
