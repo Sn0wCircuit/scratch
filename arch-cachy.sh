@@ -1,11 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Same as the official cachyos-repo.sh: force English/C output so the grep-based checks
-# on tool output (ld.so --help) can't be broken by localization.
-export LC_MESSAGES=C
-export LANG=C
-
 timedatectl set-ntp true
 
 # --- CachyOS repo settings (taken from CachyOS's official cachyos-repo.sh) ---
@@ -14,26 +9,6 @@ timedatectl set-ntp true
 CACHY_KEY=F3B607488DB35A47
 CACHY_URL=https://mirror.cachyos.org/repo/x86_64/cachyos
 
-# Highest x86-64 level this CPU supports, same check as the official script:
-# /lib/ld-linux-x86-64.so.2 --help reports it as "(supported, searched)".
-# znver4 is never auto-detected (the official check needs gcc, which the live ISO
-# does not have): choose it manually at the prompt on an AMD Zen 4/5 CPU.
-detect_level() {
-    local out
-    out=$(/lib/ld-linux-x86-64.so.2 --help 2>/dev/null || true)
-    if grep -q 'x86-64-v4 (supported, searched)' <<<"$out"; then echo v4
-    elif grep -q 'x86-64-v3 (supported, searched)' <<<"$out"; then echo v3
-    else echo none
-    fi
-}
-# none < v3 < v4 = znver4 (znver4 needs x86-64-v4, same as the official script)
-level_rank() {
-    case $1 in
-        none) echo 0 ;;
-        v3) echo 1 ;;
-        v4|znver4) echo 2 ;;
-    esac
-}
 cachy_sig_ok() {
     local tmp rc; tmp=$(mktemp)
     if curl -fsSL --retry 2 "$1.sig" -o "$tmp" 2>/dev/null \
@@ -260,23 +235,12 @@ read -rp "Hostname [archlinux]: " NEWHOST;  NEWHOST=${NEWHOST:-archlinux}
 read -rp "Username [shihab]: " NEWUSER;  NEWUSER=${NEWUSER:-shihab}
 read -rp "Password (used for root and $NEWUSER): " PASS
 
-DETECTED_LEVEL=$(detect_level)
 echo
-echo "Detected CPU level: $DETECTED_LEVEL"
-if [ "$DETECTED_LEVEL" = v4 ]; then
-    echo "NOTE: Intel 12th gen (Alder Lake) and newer can report v4 but cannot run AVX-512."
-    echo "      If your CPU is one of those, choose v3."
-    echo "NOTE: on an AMD Zen 4/5 CPU, choose znver4 (it cannot be auto-detected here)."
-fi
-read -rp "CachyOS optimized repos: znver4 / v4 / v3 / none [$DETECTED_LEVEL]: " CPU_LEVEL
-CPU_LEVEL=${CPU_LEVEL:-$DETECTED_LEVEL}
+echo "NOTE: Intel 12th gen (Alder Lake) and newer cannot run AVX-512, choose v3 there."
+echo "      On an AMD Zen 4/5 CPU, znver4 is the right choice."
+read -rp "CachyOS optimized repos: znver4 / v4 / v3 / none [v3]: " CPU_LEVEL
+CPU_LEVEL=${CPU_LEVEL:-v3}
 case $CPU_LEVEL in znver4|v4|v3|none) ;; *) echo "Invalid level: $CPU_LEVEL"; exit 1 ;; esac
-# Same refusal as the official script (add_specific_repo): a level the CPU does not
-# report as supported is not added. v3 needs x86-64-v3, v4 and znver4 need x86-64-v4.
-if [ "$(level_rank "$CPU_LEVEL")" -gt "$(level_rank "$DETECTED_LEVEL")" ]; then
-    echo "This CPU does not report support for '$CPU_LEVEL' (detected: $DETECTED_LEVEL)."
-    exit 1
-fi
 
 # Anything other than n/N means yes
 [[ $FORMAT_EFI == [nN]* ]] && FORMAT_EFI=n || FORMAT_EFI=y
