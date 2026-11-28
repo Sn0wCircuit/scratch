@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# timedatectl
+sudo timedatectl set-ntp true
+
 # nmcli device wifi connect "" password ""
 n=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1; exit}')
 if [ -n "$n" ]; then
