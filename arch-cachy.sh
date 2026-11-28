@@ -7,29 +7,14 @@ timedatectl set-ntp true
 # If a download 404s one day, bump these to the versions listed on
 # https://wiki.cachyos.org/features/optimized_repos/
 CACHY_KEY=F3B607488DB35A47
-CACHY_URL=https://mirror.cachyos.org/repo/x86_64/cachyos
-
-cachy_sig_ok() {
-    local tmp rc; tmp=$(mktemp)
-    if curl -fsSL --retry 2 "$1.sig" -o "$tmp" 2>/dev/null \
-       && [ -s "$tmp" ] && ! grep -aqiE '<html|<!doctype' "$tmp"; then rc=0; else rc=1; fi
-    rm -f "$tmp"; return $rc
-}
-
-# Resolve the newest filenames from the mirror's directory listing
-cachy_resolve_pkgs() {
-    local listing p f
-    listing=$(curl -fsSL --retry 3 "$CACHY_URL/") || { echo "Cannot fetch $CACHY_URL/" >&2; return 1; }
-    CACHY_PKGS_U=()
-    for p in cachyos-keyring cachyos-mirrorlist cachyos-v3-mirrorlist cachyos-v4-mirrorlist pacman; do
-        f=$(grep -oP "(?<=href=\")${p}-[0-9][^\"/]*-(any|x86_64)\.pkg\.tar\.zst(?=\")" <<<"$listing" | sort -uV | tail -n1 || true)
-        [ -n "$f" ] || { echo "No '$p' package found in $CACHY_URL/" >&2; return 1; }
-        cachy_sig_ok "$CACHY_URL/$f" || { echo "Missing/invalid signature for $f" >&2; return 1; }
-        CACHY_PKGS_U+=("$CACHY_URL/$f")
-    done
-    printf 'Resolved: %s\n' "${CACHY_PKGS_U[@]##*/}"
-}
-
+# Packages from the wiki's "Install the necessary packages" step (fixed URLs)
+CACHY_PKGS_U=(
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst'
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-27-1-any.pkg.tar.zst'
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-27-1-any.pkg.tar.zst'
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-27-1-any.pkg.tar.zst'
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-6-x86_64.pkg.tar.zst'
+)
 
 # tweak_pacman_conf <pacman.conf>
 # Color, ILoveCandy, VerbosePkgLists, DisableDownloadTimeout, ParallelDownloads = 10,
@@ -100,22 +85,15 @@ add_cachyos_repos() {
 
 # Trust the CachyOS signing key in the live system's keyring
 import_cachy_key() {
-    local f
     # wait (max 60s) for the live ISO's keyring init
     if systemctl cat pacman-init.service >/dev/null 2>&1; then
         for _ in $(seq 60); do systemctl is-active --quiet pacman-init.service && break; sleep 1; done
     else
         for _ in $(seq 60); do [ -s /etc/pacman.d/gnupg/trustdb.gpg ] && break; sleep 1; done
     fi
-    # Key comes from the keyring package on the CachyOS mirror (no keyserver needed)
-    f=$(curl -fsSL --retry 3 "$CACHY_URL/" \
-        | grep -oP '(?<=href=")cachyos-keyring-[0-9][^"/]*-any\.pkg\.tar\.zst(?=")' \
-        | sort -uV | tail -n1 || true)
-    [ -n "$f" ] || { echo "No cachyos-keyring package found in $CACHY_URL/" >&2; exit 1; }
-    rm -rf /tmp/ck; mkdir -p /tmp/ck
-    curl -fsSL --retry 3 "$CACHY_URL/$f" -o /tmp/ck.pkg.tar.zst
-    bsdtar -xf /tmp/ck.pkg.tar.zst -C /tmp/ck
-    pacman-key --add /tmp/ck/usr/share/pacman/keyrings/cachyos.gpg
+    # Import the repository key
+    pacman-key --recv-keys "$CACHY_KEY" --keyserver keyserver.ubuntu.com
+    # Sign the repository key
     pacman-key --lsign-key "$CACHY_KEY"
 }
 
@@ -274,11 +252,10 @@ echo "CachyOS:  $CPU_LEVEL"
 read -rp "Proceed? (Y/n): " OK
 [[ $OK == [nN]* ]] && exit 1
 
-# --- CachyOS key + package resolution (moved up) ---
+# --- CachyOS key (moved up) ---
 # Network/key problems must abort BEFORE anything is modified, including the
 # UEFI boot entries removed below.
 import_cachy_key
-cachy_resolve_pkgs
 
 # --- Remove existing UEFI boot entries ---
 # Keeps entry 0000 only if the EFI partition is NOT being formatted.
@@ -295,7 +272,7 @@ tweak_pacman_conf /etc/pacman.conf
 write_arch_mirrorlist ""
 
 # --- CachyOS repos in the LIVE system ---
-# (key import and package resolution already done above, before touching anything)
+# (key import already done above, before touching anything)
 # Live ISO workaround: CachyOS's pacman fork can need a newer libcrypto than the ISO has,
 # so it is NOT installed in the live system (pacstrap still installs it into the new one).
 # Only the keyring and mirrorlists go in here; the live stock pacman gets literal
