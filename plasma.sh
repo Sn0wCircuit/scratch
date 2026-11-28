@@ -64,7 +64,6 @@ sub-bold=yes
 EOF
 
 # aria2 config
-# grep rpc-secret ~/.config/aria2/aria2.conf
 mkdir -p ~/.config/systemd/user
 cat > ~/.config/systemd/user/aria2.service <<'EOF'
 [Unit]
@@ -182,4 +181,5 @@ fi
 # chmod 600 ~/.ssh/id_* ~/.ssh/config
 # chmod 644 ~/.ssh/*.pub
 
-#    #202326
+# grep rpc-secret ~/.config/aria2/aria2.conf
+#    󰆼 #202326
